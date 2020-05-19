@@ -1,5 +1,5 @@
-#ifndef __CHARACTER_HEADER
-#define __CHARACTER_HEADER
+#ifndef ABSTRACT_TERROR_STRIKE_CHARACTER_HPP
+#define ABSTRACT_TERROR_STRIKE_CHARACTER_HPP
 #include "map.hpp"
 namespace gltactics {
   template <ssize_t map_size = DEFAULT_MAPSIZE>
@@ -24,10 +24,10 @@ namespace gltactics {
     }
 
     bool move(direction dir) {
-      size_t destination = _position.y * map_size + _position.x + dir;
+      size_t destination = (size_t)(_position.y * map_size + _position.x) + dir;
       if(_map[destination].tileType == gltactics::type::AIR || (_map[destination].attributeType & gltactics::attribute::OPEN)) {
-	_position.y = destination / map_size;
-	_position.x = destination % map_size;
+	_position.y = float(destination / map_size);
+	_position.x = float(destination % map_size);
 	return true;
       }
       return false;
@@ -45,5 +45,5 @@ namespace gltactics {
       this->_position = position;
     }
   };
-};
+}
 #endif
