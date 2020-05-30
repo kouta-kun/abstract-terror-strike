@@ -31,6 +31,9 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(.)
 
 add_executable(abstract_terror_strike
+	constants.hpp
+        chest.hpp
+        chest.cpp
         character.hpp
         main.cpp
         map.cpp

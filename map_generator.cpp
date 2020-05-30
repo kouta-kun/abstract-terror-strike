@@ -3,6 +3,7 @@
 //
 
 #include "map_generator.hpp"
+#include "character.hpp"
 
 void gltactics::map_generator::vertical_split(ssize_t x, ssize_t y, ssize_t width, ssize_t height, ssize_t hor_door) {
     if (height <= 6) return;
@@ -61,6 +62,36 @@ gltactics::map_generator::horizontal_split(ssize_t x, ssize_t y, ssize_t width, 
 }
 
 gltactics::map_generator::map_generator(int seed) : generator(seed) {
+  
+}
+
+void gltactics::map_generator::place_chests() {
+  std::uniform_int_distribution<> dis(0, DEFAULT_MAPSIZE);
+  std::uniform_int_distribution<> chest_count_dis(0, 5);
+  int chest_count = chest_count_dis(generator);
+
+  gltactics::item red_key (0x10,
+			   gltactics::character<>::
+			   openDoors<gltactics::attribute::_RED>);
+  
+  gltactics::item blue_key (0x11,
+			    gltactics::character<>::
+			    openDoors<gltactics::attribute::_BLUE>);
+
+  gltactics::item green_key (0x12,
+			     gltactics::character<>::
+			     openDoors<gltactics::attribute::_GREEN>);
+  
+  for(int i = 0; i < chest_count; i++) {
+    this->chests[i] = new chest(generator, red_key, blue_key, green_key);
+    std::array<ssize_t, 2> chestTile;
+    do {
+      chestTile = {dis(generator), dis(generator)};
+    } while(m[chestTile[0]][chestTile[1]].tileType != gltactics::type::AIR);
+    m[chestTile[0]][chestTile[1]].tileType = gltactics::type::CHEST;
+    m[chestTile[0]][chestTile[1]].chest_id = i;
+  }
+
 }
 
 gltactics::map<gltactics::DEFAULT_MAPSIZE> gltactics::map_generator::build_map() {
@@ -71,11 +102,13 @@ gltactics::map<gltactics::DEFAULT_MAPSIZE> gltactics::map_generator::build_map()
         m[i][map_size - 1].tileType = gltactics::WALL;
     }
     vertical_split(0, 0, map_size, map_size);
+    place_chests();
     gltactics::map<map_size> generatedMap{0};
     for (int y = 0; y < map_size; y++) {
         for (int x = 0; x < map_size; x++) {
             generatedMap[{y, x}] = m[y][x];
         }
     }
+    for (int i = 0; i < 8; i++) generatedMap.setChest(i, chests[i]);
     return generatedMap;
 }

@@ -8,13 +8,16 @@
 #include "map.hpp"
 namespace gltactics {
     class map_generator {
-        static const size_t map_size = gltactics::DEFAULT_MAPSIZE;
-        gltactics::tile m[gltactics::DEFAULT_MAPSIZE][gltactics::DEFAULT_MAPSIZE] = {0};
-        std::mt19937_64 generator;
+      static const size_t map_size = gltactics::DEFAULT_MAPSIZE;
+      gltactics::tile m[gltactics::DEFAULT_MAPSIZE][gltactics::DEFAULT_MAPSIZE] = {0};
+      std::mt19937_64 generator;
+      gltactics::chest *chests[8] = {nullptr};
     public:
         void vertical_split(ssize_t x, ssize_t y, ssize_t width, ssize_t height, ssize_t hor_door = -1);
 
         void horizontal_split(ssize_t x, ssize_t y, ssize_t width, ssize_t height, ssize_t vert_door = -1);
+
+      void place_chests();
 
         map_generator(int seed);
 
