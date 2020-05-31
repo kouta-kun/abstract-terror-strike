@@ -7,16 +7,16 @@
 #include "raylib.h"
 
 namespace gltactics {
-    template<ssize_t map_size = DEFAULT_MAPSIZE>
+    template<size_t map_size = DEFAULT_MAPSIZE>
     class character {
         map<map_size> &_map;
         Color _color;
         Vector2 _position;
         std::set<gltactics::item> _inventory;
 
-        void useChest(ssize_t x, ssize_t y, gltactics::map<map_size> &mapRef);
+        void useChest(size_t x, size_t y, gltactics::map<map_size> &mapRef);
 
-        void openDoor(ssize_t x, ssize_t y, gltactics::map<map_size> &mapRef);
+        void openDoor(size_t x, size_t y, gltactics::map<map_size> &mapRef);
 
     public:
         character(Color color, Vector2 position, map<map_size> &map);
@@ -45,12 +45,12 @@ namespace gltactics {
         static bool openDoors(gltactics::character<> *character);
     };
 
-    template<ssize_t map_size>
+    template<size_t map_size>
     template<attribute onAttribute>
     bool gltactics::character<map_size>::openDoors(character<> *character) {
         bool consumed = false;
         overMapRange(*character,
-                     [&](ssize_t x, ssize_t y, gltactics::map<map_size> &mapRef, bool &_) {
+                     [&](size_t x, size_t y, gltactics::map<map_size> &mapRef, bool &_) {
                          tile &tile = mapRef[{y, x}];
                          if (tile.tileType == DOOR) {
                              if (tile.attributeType & onAttribute) {

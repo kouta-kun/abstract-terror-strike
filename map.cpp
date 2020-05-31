@@ -5,7 +5,7 @@
 #include "map.hpp"
 #include "character.hpp"
 
-template<ssize_t map_size>
+template<size_t map_size>
 gltactics::map<map_size>::map(uint8_t fillMap) {
     for (int y = 0; y < map_size; y++) {
         for (int x = 0; x < map_size; x++) {
@@ -14,7 +14,7 @@ gltactics::map<map_size>::map(uint8_t fillMap) {
     }
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 gltactics::map<map_size>::map(std::ifstream inputFile) {
     char line[map_size + 3];
     for (int y = 0; y < map_size; y++) {
@@ -25,43 +25,43 @@ gltactics::map<map_size>::map(std::ifstream inputFile) {
     }
 }
 
-template<ssize_t map_size>
-gltactics::tile &gltactics::map<map_size>::operator[](std::array<ssize_t, 2> index) {
+template<size_t map_size>
+gltactics::tile &gltactics::map<map_size>::operator[](std::array<size_t, 2> index) {
     return layout[index[0] * map_size + index[1]];
 }
 
-template<ssize_t map_size>
-gltactics::tile &gltactics::map<map_size>::operator[](ssize_t index) {
+template<size_t map_size>
+gltactics::tile &gltactics::map<map_size>::operator[](size_t index) {
     return layout[index];
 }
 
-template<ssize_t map_size>
-std::optional<gltactics::chest> gltactics::map<map_size>::getChest(ssize_t id) {
+template<size_t map_size>
+std::optional<gltactics::chest> gltactics::map<map_size>::getChest(size_t id) {
     if (this->chests[id] != nullptr) {
         return *(this->chests[id]);
     } else return std::optional<gltactics::chest>();
 }
 
-template<ssize_t map_size>
-void gltactics::map<map_size>::setChest(ssize_t id, gltactics::chest *ptr) {
+template<size_t map_size>
+void gltactics::map<map_size>::setChest(size_t id, gltactics::chest *ptr) {
     if (ptr) chests[id] = ptr;
     else chests[id] = nullptr;
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 void gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction,
                              bool &exitLoop) {
-    for (ssize_t x = std::max((ssize_t) 0, (ssize_t) playerCharacter.position().x - 1);
-         x < std::min(map_size, (ssize_t) playerCharacter.position().x + 2); x++) {
-        for (ssize_t y = std::max((ssize_t) 0, (ssize_t) playerCharacter.position().y - 1);
-             y < std::min(map_size, (ssize_t) playerCharacter.position().y + 2); y++) {
+    for (size_t x = std::max((size_t) 0, (size_t) playerCharacter.position().x - 2);
+         x <= std::min(map_size-1, (size_t) playerCharacter.position().x + 2); x++) {
+        for (size_t y = std::max((size_t) 0, (size_t) playerCharacter.position().y - 2);
+             y <= std::min(map_size-1, (size_t) playerCharacter.position().y + 2); y++) {
             mapFunction(x, y, playerCharacter.map(), exitLoop);
             if (exitLoop) return;
         }
     }
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 bool gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction) {
     bool breakLoop;
     overMapRange(playerCharacter, mapFunction, breakLoop);

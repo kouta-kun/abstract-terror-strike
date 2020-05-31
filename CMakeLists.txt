@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.11) # FetchContent is available in 3.11+
 project(abstract_terror_strike)
-
+if(${PLATFORM} STREQUAL "Web")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s USE_GLFW=3 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY")
+  # Since WASM is used, ALLOW_MEMORY_GROWTH has no extra overheads
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s ALLOW_MEMORY_GROWTH=1 --no-heap-copy")
+  set(OUTPUT_EXT ".html")
+endif()
 # Set this to the minimal version you want to support
 find_package(raylib 3.0 QUIET) # Let CMake search for a raylib-config.cmake
 
@@ -40,4 +45,4 @@ add_executable(abstract_terror_strike
         main.cpp
         gen_icons.cpp gen_icons.h image_cache.cpp image_cache.h)
 
-target_link_libraries(abstract_terror_strike raylib)
+target_link_libraries(abstract_terror_strike raylib glfw)

@@ -2,11 +2,12 @@
 #define __CHEST_HPP
 #include <optional>
 #include <random>
+#include <compare>
 #include <array>
 #include "constants.hpp"
 
 namespace gltactics {
-  template <ssize_t map_size>
+  template <size_t map_size>
   class character;
 };
 

@@ -13,9 +13,9 @@ namespace gltactics {
       std::mt19937_64 generator;
       gltactics::chest *chests[8] = {nullptr};
     public:
-        void vertical_split(ssize_t x, ssize_t y, ssize_t width, ssize_t height, ssize_t hor_door = -1);
+        void vertical_split(size_t x, size_t y, size_t width, size_t height, size_t hor_door = -1);
 
-        void horizontal_split(ssize_t x, ssize_t y, ssize_t width, ssize_t height, ssize_t vert_door = -1);
+        void horizontal_split(size_t x, size_t y, size_t width, size_t height, size_t vert_door = -1);
 
         std::vector<gltactics::attribute> place_chests();
 

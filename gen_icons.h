@@ -5,15 +5,16 @@
 #include <vector>
 #include <tuple>
 #include "raylib.h"
+#include <cstdint>
 
 #ifndef ABSTRACT_TERROR_STRIKE_GEN_ICONS_H
 namespace gltactics {
     struct cmpIcon {
-        ssize_t width;
-        ssize_t height;
+        size_t width;
+        size_t height;
         std::vector<bool> image;
 
-        cmpIcon(ssize_t width, ssize_t height, std::vector<bool> image);
+        cmpIcon(size_t width, size_t height, std::vector<bool> image);
         cmpIcon() = default;
     };
 

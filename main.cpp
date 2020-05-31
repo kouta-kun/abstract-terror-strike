@@ -8,6 +8,9 @@
 #include "map_generator.hpp"
 #include "image_cache.h"
 #include "gen_icons.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #define TRANSLATE_CAMERA(axis, amount) camera.position.axis += (amount); camera.target.axis += (amount)
 int main() {
@@ -79,8 +82,8 @@ int main() {
 
         Vector3 playerPosition = playerCharacter.position3D();
         DrawCube(playerPosition, 1.0f, 1.0f, 1.0f, playerCharacter.color());
-        for (int y = 0; y < gltactics::DEFAULT_MAPSIZE; y++) {
-            for (int x = 0; x < gltactics::DEFAULT_MAPSIZE; x++) {
+        for (size_t y = 0; y < gltactics::DEFAULT_MAPSIZE; y++) {
+            for (size_t x = 0; x < gltactics::DEFAULT_MAPSIZE; x++) {
                 Vector3 wallPosition = {static_cast<float>(x), 0.0f, static_cast<float>(y)};
                 gltactics::tile &tile = myMap[{y, x}];
                 switch (tile.tileType) {
@@ -125,7 +128,7 @@ int main() {
         EndMode3D();
 
         overMapRange(playerCharacter,
-                     [](ssize_t x, ssize_t y, gltactics::map<> &mapRef, bool &exitLoop) {
+                     [](size_t x, size_t y, gltactics::map<> &mapRef, bool &exitLoop) {
                          if (mapRef[{y, x}].tileType == gltactics::type::DOOR) {
                              DrawText("F to open/close doors", 0, 400, 22, WHITE);
                              exitLoop = true;
@@ -133,7 +136,7 @@ int main() {
                      });
 
         overMapRange(playerCharacter,
-                     [](ssize_t x, ssize_t y, gltactics::map<> &mapRef, bool &exitLoop) {
+                     [](size_t x, size_t y, gltactics::map<> &mapRef, bool &exitLoop) {
                          if (mapRef[{y, x}].tileType == gltactics::type::CHEST) {
                              DrawText("F to open chests", 0, 430, 22, WHITE);
                              exitLoop = true;
@@ -154,6 +157,9 @@ int main() {
             }
         }
         EndDrawing();
+#ifdef __EMSCRIPTEN__
+        emscripten_sleep(1000/60);
+#endif
     }
 
     // De-Initialization

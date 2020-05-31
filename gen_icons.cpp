@@ -5,7 +5,7 @@
 #include <cstdint>
 #include "gen_icons.h"
 
-gltactics::cmpIcon::cmpIcon(const ssize_t width, const ssize_t height, std::vector<bool> image) : width(width),
+gltactics::cmpIcon::cmpIcon(const size_t width, const size_t height, std::vector<bool> image) : width(width),
                                                                                                   height(height),
                                                                                                   image(std::move(
                                                                                                           image)) {};

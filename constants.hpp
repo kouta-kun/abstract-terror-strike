@@ -9,8 +9,9 @@
 #include <functional>
 #include "raylib.h"
 
+
 namespace gltactics {
-  constexpr ssize_t DEFAULT_MAPSIZE = 24;
+  constexpr size_t DEFAULT_MAPSIZE = 24;
   constexpr std::array<Color, 3> keyColors = {RED, BLUE, GREEN};
 };
 #endif

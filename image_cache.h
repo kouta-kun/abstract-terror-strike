@@ -5,7 +5,7 @@
 #ifndef ABSTRACT_TERROR_STRIKE_IMAGE_CACHE_H
 #define ABSTRACT_TERROR_STRIKE_IMAGE_CACHE_H
 
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <functional>
 #include "gen_icons.h"
@@ -16,7 +16,7 @@ namespace gltactics {
         std::size_t operator()(const std::tuple<iconFunction, Color> &tup) const {
             Color color = std::get<1>(tup);
             std::uint32_t &colorInt = reinterpret_cast<uint32_t &>(color);
-            return (ssize_t)std::get<0>(tup) ^ colorInt;
+            return (size_t)std::get<0>(tup) ^ colorInt;
         }
     };
 

@@ -4,8 +4,8 @@
 
 #include "character.hpp"
 
-template<ssize_t map_size>
-void gltactics::character<map_size>::openDoor(ssize_t x, ssize_t y, gltactics::map<map_size> &mapRef) {
+template<size_t map_size>
+void gltactics::character<map_size>::openDoor(size_t x, size_t y, gltactics::map<map_size> &mapRef) {
     tile &tile = mapRef[{y, x}];
     type tileType = tile.tileType;
     if (tileType == DOOR) {
@@ -18,8 +18,8 @@ void gltactics::character<map_size>::openDoor(ssize_t x, ssize_t y, gltactics::m
     }
 }
 
-template<ssize_t map_size>
-void gltactics::character<map_size>::useChest(ssize_t x, ssize_t y, gltactics::map<map_size> &mapRef) {
+template<size_t map_size>
+void gltactics::character<map_size>::useChest(size_t x, size_t y, gltactics::map<map_size> &mapRef) {
     tile &tile = mapRef[{y, x}];
     type &tileType = tile.tileType;
     if (tileType == CHEST) {
@@ -34,22 +34,22 @@ void gltactics::character<map_size>::useChest(ssize_t x, ssize_t y, gltactics::m
     }
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 void gltactics::character<map_size>::setPosition(Vector2 position) {
     this->_position = position;
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 Vector3 gltactics::character<map_size>::position3D() const {
     return Vector3{_position.x, 0.0f, _position.y};
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 const Vector2 &gltactics::character<map_size>::position() const {
     return _position;
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 bool gltactics::character<map_size>::move(direction dir) {
     size_t destination = (size_t) (_position.y * map_size + _position.x) + dir;
     type blockType = _map[destination].tileType;
@@ -61,16 +61,16 @@ bool gltactics::character<map_size>::move(direction dir) {
     return false;
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 void gltactics::character<map_size>::useEnvironment() {
     overMapRange(*this,
-                 [&](ssize_t x, ssize_t y, gltactics::map<map_size> &mapRef, bool &_) {
+                 [&](size_t x, size_t y, gltactics::map<map_size> &mapRef, bool &_) {
                      useChest(x, y, mapRef);
                      openDoor(x, y, mapRef);
                  });
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 void gltactics::character<map_size>::useItems() {
     start:
     for(gltactics::item i : this->_inventory) {
@@ -81,7 +81,7 @@ void gltactics::character<map_size>::useItems() {
     }
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 std::set<int> gltactics::character<map_size>::getInventoryList() const {
     std::set<int> ids;
     for (auto &item : this->_inventory) {
@@ -90,22 +90,22 @@ std::set<int> gltactics::character<map_size>::getInventoryList() const {
     return ids;
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 void gltactics::character<map_size>::setColor(Color color) {
     this->_color = color;
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 const Color &gltactics::character<map_size>::color() const {
     return _color;
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 gltactics::map<map_size> &gltactics::character<map_size>::map() {
     return _map;
 }
 
-template<ssize_t map_size>
+template<size_t map_size>
 gltactics::character<map_size>::character(Color color, Vector2 position, gltactics::map<map_size> &map) : _color{color},
                                                                                                           _position{
                                                                                                                   position},
