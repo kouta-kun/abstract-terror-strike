@@ -21,7 +21,7 @@ namespace gltactics {
     public:
         character(Color color, Vector2 position, map<map_size> &map);
 
-        map<map_size> &map();
+        map<map_size> &parent();
 
         [[nodiscard]] const Color &color() const;
 

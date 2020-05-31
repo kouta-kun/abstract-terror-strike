@@ -101,7 +101,7 @@ const Color &gltactics::character<map_size>::color() const {
 }
 
 template<size_t map_size>
-gltactics::map<map_size> &gltactics::character<map_size>::map() {
+gltactics::map<map_size> &gltactics::character<map_size>::parent() {
     return _map;
 }
 

@@ -55,7 +55,7 @@ void gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, co
          x <= std::min(map_size-1, (size_t) playerCharacter.position().x + 2); x++) {
         for (size_t y = std::max((size_t) 0, (size_t) playerCharacter.position().y - 2);
              y <= std::min(map_size-1, (size_t) playerCharacter.position().y + 2); y++) {
-            mapFunction(x, y, playerCharacter.map(), exitLoop);
+            mapFunction(x, y, playerCharacter.parent(), exitLoop);
             if (exitLoop) return;
         }
     }
