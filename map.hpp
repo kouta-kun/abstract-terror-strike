@@ -18,7 +18,8 @@ namespace gltactics {
         AIR = 0,
         WALL = 1,
         DOOR = 2,
-        CHEST = 3
+        CHEST = 3,
+        EXIT = 4
     };
 
     enum attribute : uint8_t {

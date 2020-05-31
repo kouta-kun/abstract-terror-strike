@@ -27,7 +27,7 @@ void gltactics::character<map_size>::useChest(size_t x, size_t y, gltactics::map
         gltactics::chest chest = *mapRef.getChest(chest_id);
         tileType = AIR;
         gltactics::item new_item = chest.pick_item();
-        while(_inventory.find(new_item) != _inventory.end()) {
+        while (_inventory.find(new_item) != _inventory.end()) {
             new_item = chest.pick_item();
         }
         _inventory.insert(new_item);
@@ -52,10 +52,11 @@ const Vector2 &gltactics::character<map_size>::position() const {
 template<size_t map_size>
 bool gltactics::character<map_size>::move(direction dir) {
     size_t destination = (size_t) (_position.y * map_size + _position.x) + dir;
-    type blockType = _map[destination].tileType;
-    if (blockType == AIR || (blockType == DOOR && (_map[destination].attributeType & OPEN) > 0)) {
-        _position.y = float(destination / map_size);
-        _position.x = float(destination % map_size);
+    map<map_size> &wrapper = _map;
+    type blockType = wrapper[destination].tileType;
+    if (blockType == AIR || (blockType == DOOR && (wrapper[destination].attributeType & OPEN) > 0) || blockType == EXIT) {
+        _position.y = int(destination / map_size);
+        _position.x = int(destination % map_size);
         return true;
     }
     return false;
@@ -73,8 +74,8 @@ void gltactics::character<map_size>::useEnvironment() {
 template<size_t map_size>
 void gltactics::character<map_size>::useItems() {
     start:
-    for(gltactics::item i : this->_inventory) {
-        if(i.get_use_fn()(this)) {
+    for (gltactics::item i : this->_inventory) {
+        if (i.get_use_fn()(this)) {
             _inventory.extract(i);
             goto start;
         }
@@ -110,6 +111,23 @@ gltactics::character<map_size>::character(Color color, Vector2 position, gltacti
                                                                                                           _position{
                                                                                                                   position},
                                                                                                           _map{map} {}
+
+template<size_t map_size>
+gltactics::character<map_size> &gltactics::character<map_size>::operator=(gltactics::map<map_size> &newMap) {
+    this->_map = newMap;
+    return *this;
+}
+
+template<size_t map_size>
+gltactics::character<map_size> &gltactics::character<map_size>::operator=(std::array<size_t, 2> newPosition) {
+    this->setPosition((Vector2){(float)newPosition[0], (float)newPosition[1]});
+    return *this;
+}
+
+template<size_t map_size>
+std::array<size_t, 2> gltactics::character<map_size>::positionArray() {
+    return {(size_t)_position.y, (size_t)_position.x};
+}
 
 template
 class gltactics::character<>;

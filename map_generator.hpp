@@ -12,18 +12,24 @@ namespace gltactics {
       gltactics::tile m[gltactics::DEFAULT_MAPSIZE][gltactics::DEFAULT_MAPSIZE] = {0};
       std::mt19937_64 generator;
       gltactics::chest *chests[8] = {nullptr};
+      std::vector<gltactics::map<>> mapList {};
+      bool hFlip = true; // flips on every map generation to build continuously playable maps
+      std::array<int64_t, 2> lastExit = {-1, -1};
     public:
-        void vertical_split(size_t x, size_t y, size_t width, size_t height, size_t hor_door = -1);
+        void verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor = -1);
 
-        void horizontal_split(size_t x, size_t y, size_t width, size_t height, size_t vert_door = -1);
+        void horizontalSplit(size_t x, size_t y, size_t width, size_t height, size_t vertDoor = -1);
 
-        std::vector<gltactics::attribute> place_chests();
+        std::vector<gltactics::attribute> placeChests(bool onLeftSide);
 
-        void placeDoors(const std::vector<gltactics::attribute> &doorTypes);
+        void placeDoors(const std::vector<gltactics::attribute> &doorTypes, bool onRightSide);
 
         map_generator(int seed);
 
-        gltactics::map<map_size> build_map();
+        gltactics::map<map_size> buildMap();
+
+        void placeExit(bool onRightSide);
+
     };
 
 };
