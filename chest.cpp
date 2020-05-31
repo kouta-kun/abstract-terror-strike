@@ -15,12 +15,14 @@ gltactics::ItemUseFn gltactics::item::get_use_fn() {
 
 
 gltactics::item gltactics::chest::pick_item() {
-  std::uniform_int_distribution<> dis(0,3);
-  return choices[dis(random_engine)];
+    return item;
 };
 
 
-gltactics::chest::chest(std::mt19937_64 &random_engine,
-			gltactics::item a, gltactics::item b, gltactics::item c)
-  : random_engine{random_engine}, choices{a,b,c} {  
+gltactics::chest::chest(gltactics::item a)
+  : item{a} {
+}
+
+std::strong_ordering gltactics::operator<=>(gltactics::item a, gltactics::item b) {
+    return a.id <=> b.id;
 }

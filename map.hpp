@@ -10,75 +10,91 @@
 #include <functional>
 #include "constants.hpp"
 #include "chest.hpp"
+#include "raylib.h"
 
 namespace gltactics {
 
-  enum type : uint8_t {
-		       AIR = 0,
-		       WALL = 1,
-		       DOOR = 2,
-		       CHEST = 3
-  };
-
-  enum attribute : uint8_t {
-			    HORIZONTAL = 1,
-			    OPEN = 2,
-			    LOCKED = 4,
-			    _RED = 8,
-			    _BLUE = 16,
-			    _GREEN = 32
-  };
-
-  struct tile {
-    type tileType;
-    union {
-      attribute attributeType;
-      uint8_t chest_id;
+    enum type : uint8_t {
+        AIR = 0,
+        WALL = 1,
+        DOOR = 2,
+        CHEST = 3
     };
 
-    operator uint16_t() const;
+    enum attribute : uint8_t {
+        HORIZONTAL = 1,
+        OPEN = 2,
+        LOCKED = 4,
+        _RED = 8,
+        _BLUE = 16,
+        _GREEN = 32
+    };
 
-    tile();
+    struct tile {
+        type tileType;
+        union {
+            attribute attributeType;
+            uint8_t chest_id;
+        };
 
-    tile(uint16_t tile);
+        operator uint16_t() const;
 
-    [[nodiscard]] bool isHorizontal() const;
+        tile();
 
-    [[nodiscard]] bool isOpen() const;
-  };
+        tile(uint16_t tile);
+
+        [[nodiscard]] bool isHorizontal() const;
+
+        [[nodiscard]] bool isOpen() const;
+
+        [[nodiscard]] bool isLocked() const;
+
+        [[nodiscard]] bool isRed() const;
+
+        [[nodiscard]] bool isBlue() const;
+
+        [[nodiscard]] bool isGreen() const;
+
+    };
 
 
-  template<ssize_t map_size = DEFAULT_MAPSIZE>
-  class map {
-    tile *layout = new tile[map_size * map_size]; // mapa cuadrado de NxN
+    template<ssize_t map_size = DEFAULT_MAPSIZE>
+    class map {
+        tile *layout = new tile[map_size * map_size]; // mapa cuadrado de NxN
 
-    chest **chests = new chest*[8]{nullptr};
+        chest **chests = new chest *[8]{nullptr};
 
-  public:
-    map(uint8_t fillMap);
+    public:
+        map(uint8_t fillMap);
 
-    map(std::ifstream inputFile);
+        map(std::ifstream inputFile);
 
-    // map[{y, x}]
-    tile &operator[](std::array<ssize_t, 2> index);
+        // map[{y, x}]
+        tile &operator[](std::array<ssize_t, 2> index);
 
-    tile &operator[](ssize_t index);
+        tile &operator[](ssize_t index);
 
-    std::optional<chest> getChest(ssize_t id);
-    void setChest(ssize_t id, chest *ptr);
-  };
+        std::optional<chest> getChest(ssize_t id);
 
-  // layout[current_position + direction] da referencia al bloque en esa direccion
-  enum direction : ssize_t {
-			    up = -DEFAULT_MAPSIZE,
-			    left = -1,
-			    right = 1,
-			    down = DEFAULT_MAPSIZE
-  };
+        void setChest(ssize_t id, chest *ptr);
+    };
 
-  typedef std::function<void(ssize_t,ssize_t,gltactics::map<>&,bool&)> rangeFunction;
+    // layout[current_position + direction] da referencia al bloque en esa direccion
+    enum direction : ssize_t {
+        up = -DEFAULT_MAPSIZE,
+        left = -1,
+        right = 1,
+        down = DEFAULT_MAPSIZE
+    };
 
-  template<ssize_t map_size>
-  void overMapRange(gltactics::character<map_size> &playerCharacter, rangeFunction mapFunction);
+    typedef std::function<void(ssize_t, ssize_t, gltactics::map<> &, bool &)> rangeFunction;
+
+    constexpr std::array<attribute, 3> lockDoorTags = {_RED, _BLUE, _GREEN};
+
+    template<ssize_t map_size>
+    void overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction& mapFunction, bool& exitedEarly);
+
+    template<ssize_t map_size>
+    bool overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction& mapFunction);
 }
 #endif

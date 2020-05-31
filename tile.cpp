@@ -19,3 +19,19 @@ bool gltactics::tile::isHorizontal() const {
 bool gltactics::tile::isOpen() const {
     return attributeType & OPEN;
 }
+
+bool gltactics::tile::isLocked() const {
+    return attributeType & LOCKED;
+}
+
+bool gltactics::tile::isRed() const {
+    return attributeType & _RED;
+}
+
+bool gltactics::tile::isBlue() const {
+    return attributeType & _BLUE;
+}
+
+bool gltactics::tile::isGreen() const {
+    return attributeType & _GREEN;
+}

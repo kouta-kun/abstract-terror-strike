@@ -37,30 +37,40 @@ gltactics::tile &gltactics::map<map_size>::operator[](ssize_t index) {
 
 template<ssize_t map_size>
 std::optional<gltactics::chest> gltactics::map<map_size>::getChest(ssize_t id) {
-  if(this->chests[id] != nullptr) {
-    return *(this->chests[id]);
-  } else return std::optional<gltactics::chest>();
+    if (this->chests[id] != nullptr) {
+        return *(this->chests[id]);
+    } else return std::optional<gltactics::chest>();
 }
 
 template<ssize_t map_size>
 void gltactics::map<map_size>::setChest(ssize_t id, gltactics::chest *ptr) {
-  if(ptr) chests[id] = ptr;
-  else chests[id] = nullptr;
+    if (ptr) chests[id] = ptr;
+    else chests[id] = nullptr;
 }
 
 template<ssize_t map_size>
-void gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, rangeFunction mapFunction) {
-  bool exitLoop = false;
-  for (ssize_t x = std::max((ssize_t) 0, (ssize_t) playerCharacter.position().x - 1);
-       x < std::min(map_size, (ssize_t) playerCharacter.position().x + 2); x++) {
-    for (ssize_t y = std::max((ssize_t) 0, (ssize_t) playerCharacter.position().y - 1);
-	 y < std::min(map_size, (ssize_t) playerCharacter.position().y + 2); y++) {
-      mapFunction(x, y, playerCharacter.map(), exitLoop);
-      if (exitLoop) return;
+void gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction,
+                             bool &exitLoop) {
+    for (ssize_t x = std::max((ssize_t) 0, (ssize_t) playerCharacter.position().x - 1);
+         x < std::min(map_size, (ssize_t) playerCharacter.position().x + 2); x++) {
+        for (ssize_t y = std::max((ssize_t) 0, (ssize_t) playerCharacter.position().y - 1);
+             y < std::min(map_size, (ssize_t) playerCharacter.position().y + 2); y++) {
+            mapFunction(x, y, playerCharacter.map(), exitLoop);
+            if (exitLoop) return;
+        }
     }
-  }
 }
 
-template void gltactics::overMapRange<gltactics::DEFAULT_MAPSIZE>(gltactics::character<gltactics::DEFAULT_MAPSIZE> &playerCharacter, rangeFunction mapFunction);
+template<ssize_t map_size>
+bool gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction) {
+    bool breakLoop;
+    overMapRange(playerCharacter, mapFunction, breakLoop);
+    return breakLoop;
+}
 
-template class gltactics::map<gltactics::DEFAULT_MAPSIZE>;
+template bool
+gltactics::overMapRange<gltactics::DEFAULT_MAPSIZE>(gltactics::character<gltactics::DEFAULT_MAPSIZE> &playerCharacter,
+                                                    const rangeFunction &mapFunction);
+
+template
+class gltactics::map<gltactics::DEFAULT_MAPSIZE>;

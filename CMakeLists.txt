@@ -26,17 +26,18 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
     endif()
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 include_directories(.)
 
 add_executable(abstract_terror_strike
-	constants.hpp
-        chest.hpp
-        chest.cpp
-        character.hpp
+        constants.hpp
+        chest.hpp character.hpp
+        map.hpp map_generator.hpp
+        tile.cpp
+        chest.cpp character.cpp
+        map.cpp map_generator.cpp
         main.cpp
-        map.cpp
-        map.hpp tile.cpp map_generator.cpp map_generator.hpp)
+        gen_icons.cpp gen_icons.h image_cache.cpp image_cache.h)
 
 target_link_libraries(abstract_terror_strike raylib)

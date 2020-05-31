@@ -11,7 +11,7 @@ namespace gltactics {
 };
 
 namespace gltactics {
-  typedef void (*ItemUseFn)(gltactics::character<DEFAULT_MAPSIZE>*);
+  typedef bool (*ItemUseFn)(gltactics::character<DEFAULT_MAPSIZE>*);
   class item {
     std::optional<ItemUseFn> use_action;
   public:
@@ -21,15 +21,15 @@ namespace gltactics {
     item(int id);
     item(int id, ItemUseFn use_action);
   };
+  std::strong_ordering operator<=>(item a, item b);
 
-  class chest {
-    std::array<gltactics::item, 3> choices;
-    std::mt19937_64 &random_engine;
+
+    class chest {
+    gltactics::item item;
 
   public:
     gltactics::item pick_item();
-    chest(std::mt19937_64 &random_engine,
-	  gltactics::item a, gltactics::item b, gltactics::item c);
+    chest(gltactics::item a);
   };
 };
 

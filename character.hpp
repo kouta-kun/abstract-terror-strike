@@ -1,94 +1,66 @@
 #ifndef ABSTRACT_TERROR_STRIKE_CHARACTER_HPP
 #define ABSTRACT_TERROR_STRIKE_CHARACTER_HPP
+
+#include <set>
 #include "map.hpp"
 #include "chest.hpp"
 #include "raylib.h"
 
 namespace gltactics {
-  template <ssize_t map_size = DEFAULT_MAPSIZE>
-  class character {
-    map<map_size> &_map;
-    Color _color;
-    Vector2 _position;
-    std::vector<gltactics::item> _inventory;
+    template<ssize_t map_size = DEFAULT_MAPSIZE>
+    class character {
+        map<map_size> &_map;
+        Color _color;
+        Vector2 _position;
+        std::set<gltactics::item> _inventory;
 
-    void openDoor(ssize_t x, ssize_t y, gltactics::map<> &mapRef) {
-      gltactics::type tileType = mapRef[{y, x}].tileType;
-      if (tileType == gltactics::type::DOOR) {
-	bool isLocked = mapRef[{y, x}].attributeType & gltactics::attribute::LOCKED;
-	if (!isLocked) {
-	  mapRef[{y, x}].attributeType = (gltactics::attribute) (mapRef[{y, x}].attributeType ^
-								 gltactics::attribute::OPEN);
-	}
-      }
-    }
-    
-  public:
-    character(Color color, Vector2 position, map<map_size> &_map) : _color{color}, _position{position}, _map{_map} {}
-    
-    map<map_size> &map() {
-      return _map;
-    }
-    
-    const Color &color() const {
-      return _color;
-    }
+        void useChest(ssize_t x, ssize_t y, gltactics::map<map_size> &mapRef);
 
-    void setColor(Color color) {
-      this->_color = color;
-    }
+        void openDoor(ssize_t x, ssize_t y, gltactics::map<map_size> &mapRef);
 
-    std::vector<int> getInventoryList() {
-      std::vector<int> ids;
-      for(auto &item : this->_inventory) {
-	ids.push_back(item.id);
-      }
-      return ids;
-    }
-    
-    void useEnvironment() {
-      gltactics::overMapRange(*this,
-		   [&](ssize_t x, ssize_t y, gltactics::map<> &mapRef, bool &_) {
-		     openDoor(x,y,mapRef);
-		   });
-    }
+    public:
+        character(Color color, Vector2 position, map<map_size> &map);
 
-    bool move(direction dir) {
-      size_t destination = (size_t)(_position.y * map_size + _position.x) + dir;
-      gltactics::type blockType = _map[destination].tileType;
-      if(blockType == gltactics::type::AIR || (blockType == gltactics::type::DOOR && (_map[destination].attributeType & gltactics::attribute::OPEN) > 0)) {
-	_position.y = float(destination / map_size);
-	_position.x = float(destination % map_size);
-	return true;
-      }
-      return false;
-    }
+        map<map_size> &map();
 
-    const Vector2 &position() const {
-      return _position;
-    }
+        [[nodiscard]] const Color &color() const;
 
-    Vector3 position3d() const {
-      return Vector3 { _position.x, 0.0f, _position.y };
-    }
+        void setColor(Color color);
 
-    void setPosition(Vector2 position) {
-      this->_position = position;
-    }
+        [[nodiscard]] std::set<int> getInventoryList() const;
 
-    template<gltactics::attribute onAttribute>
-    static void openDoors(gltactics::character<> *character) {
-      gltactics::overMapRange(*character,
-			      [](ssize_t x, ssize_t y, gltactics::map<> &mapRef, bool&_) {
-				gltactics::tile tile = mapRef[{y,x}];
-				if(tile.tileType == gltactics::type::DOOR) {
-				  if(tile.attributeType & onAttribute) {
-				    tile.attributeType =
-				      (gltactics::attribute)(tile.attributeType & (~gltactics::attribute::LOCKED));
-				  }
-				}
-			      });
+        void useEnvironment();
+
+        bool move(direction dir);
+
+        [[nodiscard]] const Vector2 &position() const;
+
+        [[nodiscard]] Vector3 position3D() const;
+
+        void setPosition(Vector2 position);
+
+        void useItems();
+
+        template<gltactics::attribute onAttribute>
+        static bool openDoors(gltactics::character<> *character);
+    };
+
+    template<ssize_t map_size>
+    template<attribute onAttribute>
+    bool gltactics::character<map_size>::openDoors(character<> *character) {
+        bool consumed = false;
+        overMapRange(*character,
+                     [&](ssize_t x, ssize_t y, gltactics::map<map_size> &mapRef, bool &_) {
+                         tile &tile = mapRef[{y, x}];
+                         if (tile.tileType == DOOR) {
+                             if (tile.attributeType & onAttribute) {
+                                 consumed = true;
+                                 tile.attributeType =
+                                         (attribute) (tile.attributeType ^ (LOCKED));
+                             }
+                         }
+                     });
+        return consumed;
     }
-  };
 };
 #endif

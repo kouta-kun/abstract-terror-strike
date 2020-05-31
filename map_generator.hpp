@@ -17,12 +17,15 @@ namespace gltactics {
 
         void horizontal_split(ssize_t x, ssize_t y, ssize_t width, ssize_t height, ssize_t vert_door = -1);
 
-      void place_chests();
+        std::vector<gltactics::attribute> place_chests();
+
+        void placeDoors(const std::vector<gltactics::attribute> &doorTypes);
 
         map_generator(int seed);
 
         gltactics::map<map_size> build_map();
     };
+
 };
 
 #endif //ABSTRACT_TERROR_STRIKE_MAP_GENERATOR_HPP
