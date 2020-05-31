@@ -51,10 +51,12 @@ void gltactics::map<map_size>::setChest(size_t id, gltactics::chest *ptr) {
 template<size_t map_size>
 void gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction,
                              bool &exitLoop) {
-    for (size_t x = std::max((size_t) 0, (size_t) playerCharacter.position().x - 2);
-         x <= std::min(map_size-1, (size_t) playerCharacter.position().x + 2); x++) {
-        for (size_t y = std::max((size_t) 0, (size_t) playerCharacter.position().y - 2);
-             y <= std::min(map_size-1, (size_t) playerCharacter.position().y + 2); y++) {
+    size_t xMin = std::max((size_t) 0, (size_t) playerCharacter.position().x - 1);
+    size_t xMax = std::min(map_size - 1, (size_t) playerCharacter.position().x + 1);
+    size_t yMin = std::max((size_t) 0, (size_t) playerCharacter.position().y - 1);
+    size_t yMax = std::min(map_size - 1, (size_t) playerCharacter.position().y + 1);
+    for (size_t x = xMin; x <= xMax; x++) {
+        for (size_t y = yMin; y <= yMax; y++) {
             mapFunction(x, y, playerCharacter.parent(), exitLoop);
             if (exitLoop) return;
         }
@@ -63,7 +65,7 @@ void gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, co
 
 template<size_t map_size>
 bool gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction) {
-    bool breakLoop;
+    bool breakLoop = false;
     overMapRange(playerCharacter, mapFunction, breakLoop);
     return breakLoop;
 }
