@@ -20,14 +20,14 @@ gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t
         leftRoomWidth = (width / 2) + (wDis(generator));
         vsplitDoorColission = horDoor >= 0 && leftRoomWidth == horDoor;
         lastStairColission =
-                lastExit[0] >= 0 && lastExit[0] >= x && lastExit[0] <= x + width && lastExit[1] != leftRoomWidth + x;
+                lastExit[0] >= 0 && lastExit[0] >= x && lastExit[0] <= x + width && lastExit[1] == leftRoomWidth + x;
         if(iterCount > 20) return -1;
     } while (vsplitDoorColission || lastStairColission);
     size_t vertDoor;
-    int iterCount = 1;
+    iterCount = 0;
     do {
         vertDoor = hDis(generator); // door on the line between both rooms
-        if (iterCount++ > 15) {
+        if (++iterCount > 15) {
             return -1;
         }
     } while (vertDoor <= 2 || vertDoor >= (map_size - 2) ||
