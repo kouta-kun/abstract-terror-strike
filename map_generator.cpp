@@ -5,8 +5,9 @@
 #include "map_generator.hpp"
 #include "character.hpp"
 
-void gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor) {
-    if (height <= 6) return;
+size_t
+gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor) {
+    if (height <= 6) return -1;
     size_t leftRoomWidth; // separes room into left and right rooms
     size_t wRandMod = 2;
     std::uniform_int_distribution<> wDis(-wRandMod, wRandMod);
@@ -14,18 +15,20 @@ void gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, s
     std::uniform_int_distribution<> hDis(0, hRandMod);
     bool vsplitDoorColission;
     bool lastStairColission;
+    size_t iterCount = 0;
     do {
         leftRoomWidth = (width / 2) + (wDis(generator));
         vsplitDoorColission = horDoor >= 0 && leftRoomWidth == horDoor;
         lastStairColission =
                 lastExit[0] >= 0 && lastExit[0] >= x && lastExit[0] <= x + width && lastExit[1] != leftRoomWidth + x;
+        if(iterCount > 20) return -1;
     } while (vsplitDoorColission || lastStairColission);
     size_t vertDoor;
     int iterCount = 1;
     do {
         vertDoor = hDis(generator); // door on the line between both rooms
         if (iterCount++ > 15) {
-            return;
+            return -1;
         }
     } while (vertDoor <= 2 || vertDoor >= (map_size - 2) ||
              m[y + vertDoor][x + leftRoomWidth - 1].tileType != gltactics::AIR ||
@@ -35,9 +38,11 @@ void gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, s
     }
     m[y + vertDoor][x + leftRoomWidth].tileType = gltactics::DOOR;
     size_t rightRoomWidth = width - leftRoomWidth;
-    if (leftRoomWidth * height <= 16 || rightRoomWidth * height <= 16) return;
-    horizontalSplit(x, y, leftRoomWidth, height, vertDoor);
-    horizontalSplit(leftRoomWidth + x, y, rightRoomWidth, height, vertDoor);
+    if (!(leftRoomWidth * height <= 16 || rightRoomWidth * height <= 16)) {
+      horizontalSplit(x, y, leftRoomWidth, height, vertDoor);
+      horizontalSplit(leftRoomWidth + x, y, rightRoomWidth, height, vertDoor);
+    }
+    return x + leftRoomWidth;
 }
 
 void
@@ -117,13 +122,13 @@ std::vector<gltactics::attribute> gltactics::map_generator::placeChests(bool onL
     return usedKeys;
 }
 
-void gltactics::map_generator::placeDoors(const std::vector<gltactics::attribute> &doorTypes, bool onRightSide) {
+void gltactics::map_generator::placeDoors(const std::vector<gltactics::attribute> &doorTypes, bool onRightSide, size_t vSplit) {
     std::vector<std::array<size_t, 2>> doorsToLock{};
     std::uniform_int_distribution<size_t> dis(50);
     int idx = 0;
-    int xOffset = onRightSide ? map_size / 2 + 1 : 1;
+    int xOffset = onRightSide ? vSplit + 1 : 1;
     while (idx != doorTypes.size()) {
-        for (size_t x = xOffset; x < xOffset + map_size / 2; x++) {
+        for (size_t x = xOffset; x < xOffset + map_size - vSplit - 1; x++) {
             for (size_t y = 0; y < gltactics::map_generator::map_size; y++) {
                 if (this->m[y][x].tileType == gltactics::DOOR && idx < doorTypes.size() && dis(this->generator) > 40) {
                     doorsToLock.push_back({y, x});
@@ -149,9 +154,9 @@ gltactics::map<gltactics::DEFAULT_MAPSIZE> gltactics::map_generator::buildMap() 
         m[map_size - 1][i].tileType = gltactics::WALL;
         m[i][map_size - 1].tileType = gltactics::WALL;
     }
-    verticalSplit(0, 0, map_size, map_size);
+    auto vsplit = verticalSplit(0, 0, map_size, map_size);
     auto doorTypes = placeChests(hFlip);
-    placeDoors(doorTypes, hFlip);
+    placeDoors(doorTypes, hFlip, vsplit);
     placeExit(hFlip);
     gltactics::map<map_size> generatedMap{0};
     for (size_t y = 0; y < map_size; y++) {

@@ -16,13 +16,13 @@ namespace gltactics {
       bool hFlip = true; // flips on every map generation to build continuously playable maps
       std::array<int64_t, 2> lastExit = {-1, -1};
     public:
-        void verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor = -1);
+        size_t verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor = -1);
 
         void horizontalSplit(size_t x, size_t y, size_t width, size_t height, size_t vertDoor = -1);
 
         std::vector<gltactics::attribute> placeChests(bool onLeftSide);
 
-        void placeDoors(const std::vector<gltactics::attribute> &doorTypes, bool onRightSide);
+        void placeDoors(const std::vector<gltactics::attribute> &doorTypes, bool onRightSide, size_t vsplit);
 
         map_generator(int seed);
 
