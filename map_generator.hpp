@@ -30,6 +30,7 @@ namespace gltactics {
 
         void placeExit(bool onRightSide);
 
+        int currentFloor();
     };
 
 };

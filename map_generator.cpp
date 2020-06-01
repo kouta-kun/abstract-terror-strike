@@ -174,6 +174,7 @@ gltactics::map<gltactics::DEFAULT_MAPSIZE> gltactics::map_generator::buildMap() 
     }
     for (int i = 0; i < 8; i++) generatedMap.setChest(i, chests[i]);
     hFlip = !hFlip;
+    mapList.push_back(generatedMap);
     return generatedMap;
 }
 
@@ -187,4 +188,8 @@ void gltactics::map_generator::placeExit(bool onRightSide) {
     } while (m[y][x].tileType != AIR);
     this->lastExit = {(int64_t) y, (int64_t) x};
     m[y][x].tileType = gltactics::type::EXIT;
+}
+
+int gltactics::map_generator::currentFloor() {
+    return mapList.size();
 }

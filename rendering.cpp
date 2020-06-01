@@ -115,6 +115,9 @@ void gltactics::game_manager::drawHud() {
             DrawTexture(icn_texture, 8 + (32 + 8) * i, 8, WHITE); // draw items
         }
     }
+    auto floorLabel = TextFormat("Current floor: %d", this->mapGenerator.currentFloor());
+    int rightMargin = MeasureText(floorLabel, 22) + 2;
+    DrawText(floorLabel, screenWidth-rightMargin, screenHeight-90, 22, WHITE);
 }
 
 void gltactics::game_manager::renderTile(const Vector3 &tilePosition, const gltactics::tile &tile) {
