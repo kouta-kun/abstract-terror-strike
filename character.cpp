@@ -27,9 +27,6 @@ void gltactics::character<map_size>::useChest(size_t x, size_t y, gltactics::map
         gltactics::chest chest = *mapRef.getChest(chest_id);
         tileType = AIR;
         gltactics::item new_item = chest.pick_item();
-        while (_inventory.find(new_item) != _inventory.end()) {
-            new_item = chest.pick_item();
-        }
         _inventory.insert(new_item);
     }
 }

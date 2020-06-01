@@ -62,7 +62,7 @@ void gltactics::game_manager::renderGameState() {
     //----------------------------------------------------------------------------------
     BeginDrawing();
 
-    ClearBackground(BLACK);
+    ClearBackground(LIGHTGRAY);
 
     BeginMode3D(camera);
     drawFloor();

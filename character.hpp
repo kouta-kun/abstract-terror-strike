@@ -57,12 +57,10 @@ namespace gltactics {
         overMapRange(*character,
                      [&](size_t x, size_t y, gltactics::map<map_size> &mapRef, bool &_) {
                          tile &tile = mapRef[{y, x}];
-                         if (tile.tileType == DOOR) {
-                             if (tile.attributeType & onAttribute) {
-                                 consumed = true;
-                                 tile.attributeType =
-                                         (attribute) (tile.attributeType ^ (LOCKED));
-                             }
+                         if (tile.tileType == DOOR && tile.attributeType & onAttribute && tile.attributeType & LOCKED) {
+                             consumed = true;
+                             tile.attributeType =
+                                     (attribute) (tile.attributeType ^ (LOCKED));
                          }
                      });
         return consumed;
