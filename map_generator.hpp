@@ -5,6 +5,7 @@
 #ifndef ABSTRACT_TERROR_STRIKE_MAP_GENERATOR_HPP
 #define ABSTRACT_TERROR_STRIKE_MAP_GENERATOR_HPP
 #include <cstdint>
+#include <set>
 #include "map.hpp"
 namespace gltactics {
     class map_generator {
@@ -15,6 +16,7 @@ namespace gltactics {
       std::vector<gltactics::map<>> mapList {};
       bool hFlip = true; // flips on every map generation to build continuously playable maps
       std::array<int64_t, 2> lastExit = {-1, -1};
+      std::set<std::array<size_t, 2>> doors;
     public:
         size_t verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor = -1);
 

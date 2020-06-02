@@ -52,8 +52,6 @@ void RenderWall(Vector3 wallPosition, const gltactics::tile &tile) {
 
 constexpr int quantization = 6;
 
-typedef void(*RenderFunction)(Vector3, const gltactics::tile &);
-
 void gltactics::game_manager::renderGameState() {
     // Update Camera
     cameraPositionChunk();
@@ -61,10 +59,12 @@ void gltactics::game_manager::renderGameState() {
     // Draw
     //----------------------------------------------------------------------------------
     BeginDrawing();
+    ClearBackground(WHITE);
 
-    ClearBackground(LIGHTGRAY);
+    DrawRectangle(0,0,screenWidth, screenHeight, LIGHTGRAY);
 
     BeginMode3D(camera);
+
     drawFloor();
     drawPlayer();
 
@@ -85,11 +85,11 @@ void gltactics::game_manager::renderGameState() {
 
 void gltactics::game_manager::drawHud() {
     DrawRectangle(0, 0, screenWidth, 48, BLACK);
-    DrawRectangle(0, screenHeight-90, screenWidth, 90, BLACK);
+    DrawRectangle(0, screenHeight - 90, screenWidth, 90, BLACK);
     gltactics::overMapRange(this->_playerCharacter,
                             [](size_t x, size_t y, gltactics::map<> &mapRef, bool &exitLoop) {
                                 if (mapRef[{y, x}].tileType == gltactics::DOOR) {
-                                    DrawText("F to open/close doors", 0, screenHeight-90, 22, WHITE);
+                                    DrawText("F to open/close doors", 0, screenHeight - 90, 22, WHITE);
                                     exitLoop = true;
                                 }
                             }); // label to open doors
@@ -97,13 +97,13 @@ void gltactics::game_manager::drawHud() {
     overMapRange(this->_playerCharacter,
                  [](size_t x, size_t y, gltactics::map<> &mapRef, bool &exitLoop) {
                      if (mapRef[{y, x}].tileType == gltactics::CHEST) {
-                         DrawText("F to open chests", 0, screenHeight-90+24, 22, WHITE);
+                         DrawText("F to open chests", 0, screenHeight - 90 + 24, 22, WHITE);
                          exitLoop = true;
                      }
                  }); // label to open chests
     const std::set<int> &inventory = this->_playerCharacter.getInventoryList();
     if (!inventory.empty()) { // label to use items
-        DrawText("E to use items", 0, screenHeight-90+48, 22, WHITE);
+        DrawText("E to use items", 0, screenHeight - 90 + 48, 22, WHITE);
     }
     int i = 0;
     for (int const &item : inventory) {
@@ -117,7 +117,7 @@ void gltactics::game_manager::drawHud() {
     }
     auto floorLabel = TextFormat("Current floor: %d", this->mapGenerator.currentFloor());
     int rightMargin = MeasureText(floorLabel, 22) + 2;
-    DrawText(floorLabel, screenWidth-rightMargin, screenHeight-90, 22, WHITE);
+    DrawText(floorLabel, screenWidth - rightMargin, screenHeight - 90, 22, WHITE);
 }
 
 void gltactics::game_manager::renderTile(const Vector3 &tilePosition, const gltactics::tile &tile) {

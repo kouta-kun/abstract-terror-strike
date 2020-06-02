@@ -8,6 +8,7 @@
 #include "map.hpp"
 #include "map_generator.hpp"
 #include "character.hpp"
+#include <chrono>
 
 namespace gltactics {
     class game_manager {
