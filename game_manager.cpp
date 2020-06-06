@@ -6,14 +6,26 @@
 #include "image_cache.h"
 #include "rendering.hpp"
 
-gltactics::game_manager::game_manager(int seed) : mapGenerator(seed), currentMap(mapGenerator.buildMap()),
+gltactics::ghost<> gltactics::game_manager::makeGhost(gltactics::map<> &map) {
+    std::uniform_int_distribution<size_t> xyMap(1, DEFAULT_MAPSIZE - 2);
+    std::array<size_t, 2> xyVec{};
+    do {
+        xyVec = {xyMap(generator), xyMap(generator)};
+    } while (map[xyVec].tileType != AIR);
+    gltactics::ghost<> newGhost(RED, {.x=float(xyVec[1]), .y=float(xyVec[0])}, map, generator);
+    return newGhost;
+}
+
+gltactics::game_manager::game_manager(int seed) : generator(seed), mapGenerator(generator),
+                                                  currentMap(mapGenerator.buildMap()),
+                                                  ghost{makeGhost(currentMap)},
                                                   _playerCharacter(BLUE, (Vector2) {1, 1}, currentMap),
                                                   camera{.position = (Vector3) {0.0f, 15.0f, 0.0f},
                                                           .target= (Vector3) {0.0f, 0.0f, 0.0f},
                                                           .up = (Vector3) {0.0f, 0.0f, -1.0f}, .fovy = 90.0f,
                                                           .type = CAMERA_PERSPECTIVE} {
     InitWindow(screenWidth, screenHeight, "gltactics");
-    SetTargetFPS(60);                                        // Set our game to run at 60 frames-per-second
+    SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 }
 
 gltactics::character<> &gltactics::game_manager::getPlayerCharacter() {
@@ -48,10 +60,12 @@ void gltactics::game_manager::stepState() {
         if (currentMap[_playerCharacter.positionArray()].tileType == EXIT) {
             currentMap = mapGenerator.buildMap();
             _playerCharacter = currentMap;
+            ghost = currentMap;
         }
     }
     if (useItems)
         _playerCharacter.useItems();
     if (useEnvironment)
         _playerCharacter.useEnvironment();
+    ghost.stepAi();
 }

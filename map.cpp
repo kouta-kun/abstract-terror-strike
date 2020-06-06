@@ -4,6 +4,7 @@
 
 #include "map.hpp"
 #include "character.hpp"
+#include <cassert>
 
 template<size_t map_size>
 gltactics::map<map_size>::map(uint8_t fillMap) {
@@ -49,6 +50,66 @@ void gltactics::map<map_size>::setChest(size_t id, gltactics::chest *ptr) {
 }
 
 template<size_t map_size>
+bool gltactics::map<map_size>::inSameRoom(Vector2 a, Vector2 b) {
+    int x1 = int(a.x);
+    int y1 = int(a.y);
+    int x2 = int(b.x);
+    int y2 = int(b.y);
+    if (x1 > x2) {
+        int tx = x2;
+        int ty = y2;
+        x2 = x1;
+        y2 = y1;
+        x1 = tx;
+        y1 = ty;
+    }
+    int rh = y2 - y1;
+    int rw = x2 - x1;
+    for (int rx = 0; rx < rw; rx++) {
+        int ry = int(std::round(float(rh) / float(rw) * float(rx)));
+        size_t x = x1 + rx;
+        size_t y = y1 + ry;
+        if ((*this)[{y, x}].tileType == WALL) return false;
+    }
+    return true;
+}
+
+
+template<size_t map_size>
+Vector2 gltactics::map<map_size>::doorInRoom(Vector2 point) {
+    std::optional<std::pair<Rectangle, Vector2>> door;
+    for (auto &k : doorsSections) {
+        if (rectContains(k.first, point) && (!door || door->first.width > k.first.width || door->first.height > k.first.height))
+            door = k;
+    }
+    assert(bool(door));
+    return std::get<1>(*door);
+}
+
+size_t hash(Rectangle r) {
+    return uint64_t(uint16_t(r.x)) << 48u | uint64_t(uint16_t(r.y)) << 32u | uint64_t(uint16_t(r.width)) << 16u |
+           uint16_t(r.height);
+}
+
+bool operator<(const Rectangle a, const Rectangle b) {
+    auto hashA = hash(a);
+    auto hashB = hash(b);
+    return hashA < hashB;
+}
+
+
+template<size_t map_size>
+void gltactics::map<map_size>::addSection(Rectangle rect, Vector2 point) {
+    doorsSections[rect] = point;
+}
+
+bool gltactics::rectContains(const Rectangle &a, const Rectangle &b) {
+    bool hcontained = a.x >= b.x && (a.x + a.width) <= (b.x + b.width);
+    bool vcontained = a.y >= b.y && (a.y + a.height) <= (b.y + b.height);
+    return hcontained && vcontained;
+}
+
+template<size_t map_size>
 void gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction,
                              bool &exitLoop) {
     size_t xMin = std::max((size_t) 0, (size_t) playerCharacter.position().x - 1);
@@ -68,6 +129,12 @@ bool gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, co
     bool breakLoop = false;
     overMapRange(playerCharacter, mapFunction, breakLoop);
     return breakLoop;
+}
+
+bool gltactics::rectContains(const Rectangle &rect, const Vector2 &point) {
+    bool hcontained = point.x >= rect.x && point.x <= (rect.x + rect.width);
+    bool vcontained = point.y >= rect.y && point.y <= (rect.y + rect.height);
+    return hcontained && vcontained;
 }
 
 template bool

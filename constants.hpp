@@ -11,7 +11,7 @@
 
 
 namespace gltactics {
-  constexpr size_t DEFAULT_MAPSIZE = 24;
+  constexpr uint8_t DEFAULT_MAPSIZE = 24;
   constexpr std::array<Color, 3> keyColors = {RED, BLUE, GREEN};
 };
 #endif

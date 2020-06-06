@@ -7,7 +7,6 @@
 #include "map_generator.hpp"
 #include "image_cache.h"
 #include "gen_icons.h"
-#include "rendering.hpp"
 #include "game_manager.h"
 
 #ifdef __EMSCRIPTEN__

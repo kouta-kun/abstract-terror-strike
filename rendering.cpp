@@ -67,6 +67,7 @@ void gltactics::game_manager::renderGameState() {
 
     drawFloor();
     drawPlayer();
+    drawGhost();
 
     for (size_t y = 0; y < gltactics::DEFAULT_MAPSIZE; y++) {
         for (size_t x = 0; x < gltactics::DEFAULT_MAPSIZE; x++) {
@@ -175,4 +176,9 @@ std::array<float, 2> gltactics::game_manager::calculateCameraChunk() const {
     float xChunk = (float) ((int) (this->_playerCharacter.position3D().x / quantization)) * quantization;
     float yChunk = (float) ((int) (this->_playerCharacter.position3D().z / quantization)) * quantization;
     return {yChunk, xChunk};
+}
+
+void gltactics::game_manager::drawGhost() {
+    Vector3 playerPosition = this->ghost.position3D();
+    DrawCube(playerPosition, 1.0f, 1.0f, 1.0f, this->ghost.color());
 }

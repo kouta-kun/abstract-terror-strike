@@ -8,6 +8,7 @@
 #include "map.hpp"
 #include "map_generator.hpp"
 #include "character.hpp"
+#include "ghost.h"
 #include <chrono>
 
 namespace gltactics {
@@ -17,24 +18,41 @@ namespace gltactics {
         gltactics::character<> _playerCharacter;
         Camera3D camera;
         std::optional<gltactics::direction> moveDirection;
-        bool useItems;
-        bool useEnvironment;
+        std::mt19937_64 generator;
+        ghost<> ghost;
+        bool useItems = false;
+        bool useEnvironment = false;
     public:
         static const size_t screenWidth = 640;
         static const size_t screenHeight = 480;
+
         game_manager(int seed);
+
         gltactics::character<> &getPlayerCharacter();
+
         gltactics::map<> &getMap();
-        void nextMap();
+
+        gltactics::ghost<> makeGhost(gltactics::map<> &map);
+
         void handleInput();
+
         void stepState();
+
         void renderGameState();
+
         void cameraPositionChunk();
+
         static void drawFloor();
+
         void drawPlayer();
+
         static void renderTile(const Vector3 &tilePosition, const gltactics::tile &tile);
+
         void drawHud();
+
         [[nodiscard]] std::array<float, 2> calculateCameraChunk() const;
+
+        void drawGhost();
     };
 };
 

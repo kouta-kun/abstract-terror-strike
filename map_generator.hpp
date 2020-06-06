@@ -5,18 +5,20 @@
 #ifndef ABSTRACT_TERROR_STRIKE_MAP_GENERATOR_HPP
 #define ABSTRACT_TERROR_STRIKE_MAP_GENERATOR_HPP
 #include <cstdint>
+#include <list>
 #include <set>
 #include "map.hpp"
 namespace gltactics {
     class map_generator {
       static const size_t map_size = gltactics::DEFAULT_MAPSIZE;
       gltactics::tile m[gltactics::DEFAULT_MAPSIZE][gltactics::DEFAULT_MAPSIZE] = {0};
-      std::mt19937_64 generator;
+      std::mt19937_64 &generator;
       gltactics::chest *chests[8] = {nullptr};
       std::vector<gltactics::map<>> mapList {};
       bool hFlip = true; // flips on every map generation to build continuously playable maps
       std::array<int64_t, 2> lastExit = {-1, -1};
-      std::set<std::array<size_t, 2>> doors;
+      std::list<std::array<size_t, 2>> doors;
+      std::list<Rectangle> sectors;
     public:
         size_t verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor = -1);
 
@@ -26,7 +28,7 @@ namespace gltactics {
 
         void placeDoors(const std::vector<gltactics::attribute> &doorTypes, bool onRightSide, size_t vsplit);
 
-        map_generator(int seed);
+        map_generator(std::mt19937_64 &generator);
 
         gltactics::map<map_size> buildMap();
 

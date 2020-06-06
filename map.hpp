@@ -8,6 +8,7 @@
 #include <cassert>
 #include <optional>
 #include <functional>
+#include <map>
 #include "constants.hpp"
 #include "chest.hpp"
 #include "raylib.h"
@@ -65,6 +66,9 @@ namespace gltactics {
 
         chest **chests = new chest *[8]{nullptr};
 
+        std::map<Rectangle, Vector2> doorsSections;
+
+
     public:
         map(uint8_t fillMap);
 
@@ -78,6 +82,12 @@ namespace gltactics {
         std::optional<chest> getChest(size_t id);
 
         void setChest(size_t id, chest *ptr);
+
+        bool inSameRoom(Vector2 a, Vector2 b);
+
+        Vector2 doorInRoom(Vector2 point);
+
+        void addSection(Rectangle rect, Vector2 point);
     };
 
     // layout[current_position + direction] da referencia al bloque en esa direccion
@@ -88,14 +98,19 @@ namespace gltactics {
         down = DEFAULT_MAPSIZE
     };
 
+    bool rectContains(const Rectangle &rect, const Vector2 &point);
+
+    bool rectContains(const Rectangle &a, const Rectangle &b);
+
     typedef std::function<void(size_t, size_t, gltactics::map<> &, bool &)> rangeFunction;
 
     constexpr std::array<attribute, 3> lockDoorTags = {_RED, _BLUE, _GREEN};
 
     template<size_t map_size>
-    void overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction& mapFunction, bool& exitedEarly);
+    void
+    overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction, bool &exitedEarly);
 
     template<size_t map_size>
-    bool overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction& mapFunction);
+    bool overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction);
 }
 #endif

@@ -43,6 +43,6 @@ add_executable(abstract_terror_strike
         chest.cpp character.cpp
         map.cpp map_generator.cpp game_manager.cpp game_manager.h
         main.cpp rendering.cpp rendering.hpp
-        gen_icons.cpp gen_icons.h image_cache.cpp game_manager.cpp game_manager.h)
+        gen_icons.cpp gen_icons.h image_cache.cpp game_manager.cpp game_manager.h ghost.cpp ghost.h)
 
 target_link_libraries(abstract_terror_strike raylib glfw)

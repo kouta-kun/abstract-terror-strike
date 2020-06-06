@@ -44,8 +44,9 @@ namespace gltactics {
         template<gltactics::attribute onAttribute>
         static bool openDoors(gltactics::character<map_size> *character);
 
-        character<map_size>& operator=(map<map_size> &newMap);
-        character<map_size>& operator=(std::array<size_t, 2> newPosition);
+        character<map_size> &operator=(map<map_size> &newMap);
+
+        character<map_size> &operator=(std::array<size_t, 2> newPosition);
 
         std::array<size_t, 2> positionArray();
     };
