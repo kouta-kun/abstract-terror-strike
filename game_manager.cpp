@@ -16,14 +16,19 @@ gltactics::ghost<> gltactics::game_manager::makeGhost(gltactics::map<> &map) {
     return newGhost;
 }
 
-gltactics::game_manager::game_manager(int seed) : generator(seed), mapGenerator(generator),
+gltactics::game_manager::game_manager(int seed) : camera{
+        .position = (Vector3) {0.0f, 15.0f, 0.0f},
+        .target= (Vector3) {0.0f, 0.0f, 0.0f},
+        .up = (Vector3) {0.0f, 0.0f, -1.0f}, .fovy = 90.0f,
+        .type = CAMERA_PERSPECTIVE},
+                                                  generator(seed), mapGenerator(generator),
                                                   currentMap(mapGenerator.buildMap()),
-                                                  _ghost{makeGhost(currentMap)},
-                                                  _playerCharacter(BLUE, (Vector2) {1, 1}, currentMap),
-                                                  camera{.position = (Vector3) {0.0f, 15.0f, 0.0f},
-                                                          .target= (Vector3) {0.0f, 0.0f, 0.0f},
-                                                          .up = (Vector3) {0.0f, 0.0f, -1.0f}, .fovy = 90.0f,
-                                                          .type = CAMERA_PERSPECTIVE} {
+                                                  _ghost(makeGhost(currentMap)),
+                                                  _playerCharacter{
+                                                          gltactics::character<>(BLUE,
+                                                                                 (Vector2) {1, 1},
+                                                                                 currentMap)
+                                                  } {
     InitWindow(screenWidth, screenHeight, "gltactics");
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 }

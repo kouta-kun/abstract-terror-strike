@@ -98,6 +98,7 @@ Color gltactics::ghost<map_size>::color() {
 template<size_t map_size>
 gltactics::ghost<map_size> &gltactics::ghost<map_size>::operator=(gltactics::map<map_size> &newMap) {
     _map = newMap;
+    return *this;
 }
 
 template

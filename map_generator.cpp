@@ -9,7 +9,7 @@
 size_t
 gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor) {
     if (height <= 6) return -1;
-    size_t leftRoomWidth; // separes room into left and right rooms
+    size_t leftRoomWidth = width/2; // separes room into left and right rooms
     size_t wRandMod = 2;
     std::uniform_int_distribution<> wDis(-wRandMod, wRandMod);
     size_t hRandMod = (height - 1);
@@ -62,7 +62,7 @@ gltactics::map_generator::horizontalSplit(size_t x, size_t y, size_t width, size
     if (mapList.size() == 6) {
         std::cout << mapList.size() << '\n';
     }
-    size_t topRoomHeight; // separates room into top and bottom rooms
+    size_t topRoomHeight = height/2; // separates room into top and bottom rooms
     size_t wRandMod = width - 1;
     std::uniform_int_distribution<> wDis(1, wRandMod);
     size_t hRandMod = 2;
