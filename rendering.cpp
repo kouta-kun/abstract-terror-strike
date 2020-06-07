@@ -179,6 +179,6 @@ std::array<float, 2> gltactics::game_manager::calculateCameraChunk() const {
 }
 
 void gltactics::game_manager::drawGhost() {
-    Vector3 playerPosition = this->ghost.position3D();
-    DrawCube(playerPosition, 1.0f, 1.0f, 1.0f, this->ghost.color());
+    Vector3 playerPosition = this->_ghost.position3D();
+    DrawCube(playerPosition, 1.0f, 1.0f, 1.0f, this->_ghost.color());
 }

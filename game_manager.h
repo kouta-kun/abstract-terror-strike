@@ -19,7 +19,7 @@ namespace gltactics {
         Camera3D camera;
         std::optional<gltactics::direction> moveDirection;
         std::mt19937_64 generator;
-        ghost<> ghost;
+        ghost<> _ghost;
         bool useItems = false;
         bool useEnvironment = false;
     public:

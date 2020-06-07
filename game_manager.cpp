@@ -18,7 +18,7 @@ gltactics::ghost<> gltactics::game_manager::makeGhost(gltactics::map<> &map) {
 
 gltactics::game_manager::game_manager(int seed) : generator(seed), mapGenerator(generator),
                                                   currentMap(mapGenerator.buildMap()),
-                                                  ghost{makeGhost(currentMap)},
+                                                  _ghost{makeGhost(currentMap)},
                                                   _playerCharacter(BLUE, (Vector2) {1, 1}, currentMap),
                                                   camera{.position = (Vector3) {0.0f, 15.0f, 0.0f},
                                                           .target= (Vector3) {0.0f, 0.0f, 0.0f},
@@ -60,12 +60,12 @@ void gltactics::game_manager::stepState() {
         if (currentMap[_playerCharacter.positionArray()].tileType == EXIT) {
             currentMap = mapGenerator.buildMap();
             _playerCharacter = currentMap;
-            ghost = currentMap;
+            _ghost = currentMap;
         }
     }
     if (useItems)
         _playerCharacter.useItems();
     if (useEnvironment)
         _playerCharacter.useEnvironment();
-    ghost.stepAi();
+    _ghost.stepAi();
 }
