@@ -13,7 +13,7 @@ namespace gltactics {
         Color _color;
         Vector2 _position;
         Vector2 target;
-        std::mt19937_64 &generator;
+        std::reference_wrapper<std::mt19937_64> generator;
         int framesAlive = 0;
 
     public:

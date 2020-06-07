@@ -28,7 +28,7 @@ void gltactics::ghost<map_size>::stepAi() {
         std::uniform_int_distribution<size_t> targetYDis(std::max(1, ghostY - 3),
                                                          std::min(int(map_size - 2), ghostY + 3));
         do {
-            newPosition = {targetYDis(generator), targetXDis(generator)};
+            newPosition = {targetYDis(generator.get()), targetXDis(generator.get())};
         } while (map[newPosition].tileType != AIR);
         target = {.x=static_cast<float>(newPosition[1]), .y=static_cast<float>(newPosition[0])};
         targetX = int(target.x);
@@ -42,7 +42,7 @@ void gltactics::ghost<map_size>::stepAi() {
         std::vector<gltactics::direction> possibleDirections = directionsToward(targetAi);
         if (!possibleDirections.empty()) {
             std::uniform_int_distribution<int> index(0, possibleDirections.size() - 1);
-            direction = possibleDirections[index(generator)];
+            direction = possibleDirections[index(generator.get())];
         }
         if (direction)
             this->move(*direction);

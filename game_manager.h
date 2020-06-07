@@ -26,7 +26,7 @@ namespace gltactics {
         static const size_t screenWidth = 640;
         static const size_t screenHeight = 480;
 
-        game_manager(int seed);
+        game_manager(std::mt19937_64 &generator);
 
         gltactics::character<> &getPlayerCharacter();
 
@@ -53,6 +53,8 @@ namespace gltactics {
         [[nodiscard]] std::array<float, 2> calculateCameraChunk() const;
 
         void drawGhost();
+
+        void stepGen();
     };
 };
 

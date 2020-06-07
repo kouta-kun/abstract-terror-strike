@@ -18,7 +18,7 @@ gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t
     bool lastStairColission;
     size_t iterCount = 0;
     do {
-        leftRoomWidth = (width / 2) + (wDis(generator));
+        leftRoomWidth = (width / 2) + (wDis(generator->get()));
         vsplitDoorColission = false;
         for (int yOff = 0; yOff < height + 1; yOff++) {
             if (std::find(std::begin(doors), std::end(doors),
@@ -35,7 +35,7 @@ gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t
     size_t vertDoor;
     iterCount = 0;
     do {
-        vertDoor = hDis(generator); // door on the line between both rooms
+        vertDoor = hDis(generator->get()); // door on the line between both rooms
         if (++iterCount > 15) {
             return -1;
         }
@@ -71,7 +71,7 @@ gltactics::map_generator::horizontalSplit(size_t x, size_t y, size_t width, size
     bool lastStairColission;
     size_t iterCount = 0;
     do {
-        topRoomHeight = (height / 2) + (hDis(generator));
+        topRoomHeight = (height / 2) + (hDis(generator->get()));
         hsplitDoorColission = false;
         for (int xOff = 0; xOff < width + 1; xOff++) {
             if (std::find(std::begin(doors), std::end(doors),
@@ -91,7 +91,7 @@ gltactics::map_generator::horizontalSplit(size_t x, size_t y, size_t width, size
     size_t horDoor;
     iterCount = 0;
     do {
-        horDoor = wDis(generator);
+        horDoor = wDis(generator->get());
         if (++iterCount > 15) return;
     } while (horDoor <= 2 || horDoor >= (map_size - 2) ||
              m[y + topRoomHeight - 1][x + horDoor].tileType != gltactics::AIR ||
@@ -111,7 +111,7 @@ gltactics::map_generator::map_generator(std::mt19937_64 &generator) : generator{
 std::vector<gltactics::attribute> gltactics::map_generator::placeChests(bool onLeftSide) {
     std::uniform_int_distribution<size_t> dis(1, DEFAULT_MAPSIZE - 1);
     std::uniform_int_distribution<> chest_count_dis(1, 3);
-    int chest_count = chest_count_dis(generator);
+    int chest_count = chest_count_dis(generator->get());
     chest_count_dis = std::uniform_int_distribution<>(0, 2);
 
     gltactics::item red_key(0x10,
@@ -132,11 +132,11 @@ std::vector<gltactics::attribute> gltactics::map_generator::placeChests(bool onL
     std::vector<gltactics::attribute> usedKeys{};
     int xOffset = onLeftSide ? 0 : map_size / 2;
     for (int i = 0; i < chest_count; i++) {
-        int keyIndex = chest_count_dis(generator);
+        int keyIndex = chest_count_dis(generator->get());
         this->chests[i] = new chest(keys[keyIndex]);
         std::array<size_t, 2> chestTile{};
         do {
-            chestTile = {dis(generator), xOffset + dis(generator) / 2};
+            chestTile = {dis(generator->get()), xOffset + dis(generator->get()) / 2};
         } while (m[chestTile[0]][chestTile[1]].tileType != gltactics::type::AIR);
         keys.erase(keys.begin() + keyIndex);
         usedKeys.push_back(keysAttribute[keyIndex]);
@@ -159,7 +159,7 @@ void gltactics::map_generator::placeDoors(const std::vector<gltactics::attribute
     while (idx != doorTypes.size() && iterCount < 2) {
         for (size_t x = xOffset; x < xOffset + map_size - vSplit - 1; x++) {
             for (size_t y = 0; y < gltactics::map_generator::map_size; y++) {
-                if (this->m[y][x].tileType == gltactics::DOOR && idx < doorTypes.size() && dis(this->generator) > 40) {
+                if (this->m[y][x].tileType == gltactics::DOOR && idx < doorTypes.size() && dis(generator->get()) > 40) {
                     doorsToLock.push_back({y, x});
                     idx++;
                 }
@@ -222,8 +222,8 @@ void gltactics::map_generator::placeExit(bool onRightSide) {
     size_t xOffset = onRightSide ? map_size / 2 + 1 : 1;
     size_t x, y;
     do {
-        x = dis(generator) + xOffset;
-        y = dis(generator) * 2;
+        x = dis(generator->get()) + xOffset;
+        y = dis(generator->get()) * 2;
     } while (m[y][x].tileType != AIR);
     this->lastExit = {(int64_t) y, (int64_t) x};
     m[y][x].tileType = gltactics::type::EXIT;
@@ -231,4 +231,12 @@ void gltactics::map_generator::placeExit(bool onRightSide) {
 
 int gltactics::map_generator::currentFloor() {
     return mapList.size();
+}
+
+gltactics::map_generator::map_generator(std::nullptr_t) {
+    this->generator = std::optional<std::reference_wrapper<std::mt19937_64>>();
+}
+
+gltactics::map_generator::map_generator(const gltactics::map_generator &newGenerator) {
+    this->generator = newGenerator.generator;
 }

@@ -18,7 +18,8 @@ int main() {
     srand(time(nullptr));
     int seed = rand();
     std::cout << "seed: " << seed << '\n';
-    gltactics::game_manager manager(seed);
+    std::mt19937_64 gen(seed);
+    gltactics::game_manager manager(gen);
     //--------------------------------------------------------------------------------------
 
     // Main game loop

@@ -12,23 +12,21 @@ gltactics::ghost<> gltactics::game_manager::makeGhost(gltactics::map<> &map) {
     do {
         xyVec = {xyMap(generator), xyMap(generator)};
     } while (map[xyVec].tileType != AIR);
-    gltactics::ghost<> newGhost(RED, {.x=float(xyVec[1]), .y=float(xyVec[0])}, map, generator);
-    return newGhost;
+    return gltactics::ghost<>(RED, {.x=float(xyVec[1]), .y=float(xyVec[0])}, map, generator);
 }
 
-gltactics::game_manager::game_manager(int seed) : camera{
-        .position = (Vector3) {0.0f, 15.0f, 0.0f},
-        .target= (Vector3) {0.0f, 0.0f, 0.0f},
-        .up = (Vector3) {0.0f, 0.0f, -1.0f}, .fovy = 90.0f,
-        .type = CAMERA_PERSPECTIVE},
-                                                  generator(seed), mapGenerator(generator),
-                                                  currentMap(mapGenerator.buildMap()),
-                                                  _ghost(makeGhost(currentMap)),
-                                                  _playerCharacter{
-                                                          gltactics::character<>(BLUE,
-                                                                                 (Vector2) {1, 1},
-                                                                                 currentMap)
-                                                  } {
+gltactics::game_manager::game_manager(std::mt19937_64 &generator) :
+        camera{
+                .position = (Vector3) {0.0f, 15.0f, 0.0f},
+                .target= (Vector3) {0.0f, 0.0f, 0.0f},
+                .up = (Vector3) {0.0f, 0.0f, -1.0f}, .fovy = 90.0f,
+                .type = CAMERA_PERSPECTIVE
+        },
+        generator{generator},
+        mapGenerator(generator),
+        currentMap(mapGenerator.buildMap()),
+        _playerCharacter(SKYBLUE, {1, 1}, currentMap),
+        _ghost{makeGhost(currentMap)} {
     InitWindow(screenWidth, screenHeight, "gltactics");
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 }
@@ -63,9 +61,7 @@ void gltactics::game_manager::stepState() {
     if (moveDirection) {
         _playerCharacter.move(*moveDirection);
         if (currentMap[_playerCharacter.positionArray()].tileType == EXIT) {
-            currentMap = mapGenerator.buildMap();
-            _playerCharacter = currentMap;
-            _ghost = currentMap;
+            stepGen();
         }
     }
     if (useItems)
@@ -73,4 +69,10 @@ void gltactics::game_manager::stepState() {
     if (useEnvironment)
         _playerCharacter.useEnvironment();
     _ghost.stepAi();
+}
+
+void gltactics::game_manager::stepGen() {
+    this->currentMap = this->mapGenerator.buildMap();
+    this->_playerCharacter = this->currentMap;
+    this->_ghost = this->currentMap;
 }

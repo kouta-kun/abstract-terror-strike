@@ -12,7 +12,7 @@ namespace gltactics {
     class map_generator {
       static const size_t map_size = gltactics::DEFAULT_MAPSIZE;
       gltactics::tile m[gltactics::DEFAULT_MAPSIZE][gltactics::DEFAULT_MAPSIZE] = {0};
-      std::mt19937_64 &generator;
+      std::optional<std::reference_wrapper<std::mt19937_64>> generator;
       gltactics::chest *chests[8] = {nullptr};
       std::vector<gltactics::map<>> mapList {};
       bool hFlip = true; // flips on every map generation to build continuously playable maps
@@ -29,6 +29,8 @@ namespace gltactics {
         void placeDoors(const std::vector<gltactics::attribute> &doorTypes, bool onRightSide, size_t vsplit);
 
         map_generator(std::mt19937_64 &generator);
+        map_generator(std::nullptr_t);
+        map_generator(const map_generator &mapGenerator);
 
         gltactics::map<map_size> buildMap();
 
