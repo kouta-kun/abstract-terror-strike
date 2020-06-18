@@ -5,7 +5,7 @@
 #include <iostream>
 #include "map_generator.hpp"
 #include "character.hpp"
-
+#include <cmath>
 size_t
 gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor) {
     if (height <= 6) return -1;
@@ -99,7 +99,7 @@ gltactics::map_generator::horizontalSplit(size_t x, size_t y, size_t width, size
     m[y + topRoomHeight][x + horDoor].tileType = gltactics::DOOR;
     m[y + topRoomHeight][x + horDoor].attributeType = gltactics::HORIZONTAL;
     doors.push_back({y + topRoomHeight, x + horDoor});
-    sectors.push_back({.x=float(x), .y=float(y), .width=float(width), .height=float(height)});
+    sectors.push_back({.x=float(std::max(int(x)-1,0)), .y=float(std::max(int(y)-1, 0)), .width=float(width+1), .height=float(height+1)});
     auto bottomRoomHeight = height - topRoomHeight;
     if (bottomRoomHeight * width <= 16 || topRoomHeight * width <= 16) return;
     verticalSplit(x, y, width, topRoomHeight, horDoor);
@@ -133,7 +133,7 @@ std::vector<gltactics::attribute> gltactics::map_generator::placeChests(bool onL
     int xOffset = onLeftSide ? 0 : map_size / 2;
     for (int i = 0; i < chest_count; i++) {
         int keyIndex = chest_count_dis(generator->get());
-        this->chests[i] = new chest(keys[keyIndex]);
+        this->chests[i] = std::optional<chest>(chest(keys[keyIndex]));
         std::array<size_t, 2> chestTile{};
         do {
             chestTile = {dis(generator->get()), xOffset + dis(generator->get()) / 2};
@@ -177,36 +177,25 @@ void gltactics::map_generator::placeDoors(const std::vector<gltactics::attribute
 
 
 gltactics::map<gltactics::DEFAULT_MAPSIZE> gltactics::map_generator::buildMap() {
-    std::fill(&chests[0], &chests[7] + 1, nullptr);
-    std::fill(&m[0][0], &m[map_size - 1][map_size - 1] + 1, 0);
-    for (int i = 0; i < map_size; i++) {
-        m[0][i].tileType = gltactics::WALL;
-        m[i][0].tileType = gltactics::WALL;
-        m[map_size - 1][i].tileType = gltactics::WALL;
-        m[i][map_size - 1].tileType = gltactics::WALL;
-    }
-    doors = {};
-    auto vsplit = verticalSplit(0, 0, map_size, map_size);
+    initialize();
+    auto vSplit = verticalSplit(0, 0, map_size, map_size);
     auto doorTypes = placeChests(hFlip);
-    placeDoors(doorTypes, hFlip, vsplit);
+    placeDoors(doorTypes, hFlip, vSplit);
     placeExit(hFlip);
-    gltactics::map<map_size> generatedMap{0};
-    for (size_t y = 0; y < map_size; y++) {
-        for (size_t x = 0; x < map_size; x++) {
-            generatedMap[{y, x}] = m[y][x];
-        }
-    }
-    for (int i = 0; i < 8; i++) generatedMap.setChest(i, chests[i]);
+    gltactics::map<map_size> generatedMap = copyMap();
+    for (int i = 0; i < 8; i++) generatedMap.setChest(i, chests[i] ? *(chests[i]) : std::optional<chest>());
     auto size = doors.size();
     std::list<std::array<size_t, 2>> tmpDoors;
     std::list<Rectangle> tmpSectors;
     for (int i = 0; i < size; i++) {
         std::array<size_t, 2> &point = doors.front();
         Vector2 door = {float(point[1]), float(point[0])};
-        generatedMap.addSection(sectors.front(), door);
+        Rectangle &sector = sectors.front();
+        std::cout << sector.x << ',' << sector.y << ',' << sector.width << ',' << sector.height << '\n';
+        generatedMap.addSection(sector, door);
         tmpDoors.push_front(doors.front());
         doors.pop_front();
-        tmpSectors.push_front(sectors.front());
+        tmpSectors.push_front(sector);
         sectors.pop_front();
     }
     hFlip = !hFlip;
@@ -215,6 +204,28 @@ gltactics::map<gltactics::DEFAULT_MAPSIZE> gltactics::map_generator::buildMap() 
     file.flush();
     file.close();
     return generatedMap;
+}
+
+gltactics::map<gltactics::map_generator::map_size> gltactics::map_generator::copyMap() const {
+    gltactics::map<gltactics::map_generator::map_size> generatedMap{0};
+    for (size_t y = 0; y < gltactics::map_generator::map_size; y++) {
+        for (size_t x = 0; x < gltactics::map_generator::map_size; x++) {
+            generatedMap[{y, x}] = this->m[y][x];
+        }
+    }
+    return generatedMap;
+}
+
+void gltactics::map_generator::initialize() {
+    std::fill(std::begin(this->chests), std::end(this->chests), std::optional<chest>());
+    std::fill(&this->m[0][0], &this->m[gltactics::map_generator::map_size - 1][gltactics::map_generator::map_size - 1] + 1, 0);
+    for (int i = 0; i < gltactics::map_generator::map_size; i++) {
+        this->m[0][i].tileType = gltactics::WALL;
+        this->m[i][0].tileType = gltactics::WALL;
+        this->m[gltactics::map_generator::map_size - 1][i].tileType = gltactics::WALL;
+        this->m[i][gltactics::map_generator::map_size - 1].tileType = gltactics::WALL;
+    }
+    this->doors = {};
 }
 
 void gltactics::map_generator::placeExit(bool onRightSide) {

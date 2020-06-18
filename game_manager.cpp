@@ -28,7 +28,7 @@ gltactics::game_manager::game_manager(std::mt19937_64 &generator) :
         _playerCharacter(SKYBLUE, {1, 1}, currentMap),
         _ghost{makeGhost(currentMap)} {
     InitWindow(screenWidth, screenHeight, "gltactics");
-    SetTargetFPS(60); // Set our game to run at 60 frames-per-second
+    SetTargetFPS(60); // Set our game to run at 30 frames-per-second
 }
 
 gltactics::character<> &gltactics::game_manager::getPlayerCharacter() {

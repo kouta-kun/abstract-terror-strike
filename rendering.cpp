@@ -52,6 +52,18 @@ void RenderWall(Vector3 wallPosition, const gltactics::tile &tile) {
 
 constexpr int quantization = 6;
 
+Vector2 center(Rectangle dist) {
+    auto x = dist.x + dist.width / 2.0f;
+    auto y = dist.y + dist.height / 2.0f;
+    return Vector2{x, y};
+}
+
+float distance(Vector2 a, Vector2 b) {
+    auto x = fabs(a.x - b.x);
+    auto y = fabs(a.y - b.y);
+    return (x * x) + (y * y);
+}
+
 void gltactics::game_manager::renderGameState() {
     // Update Camera
     cameraPositionChunk();
@@ -61,7 +73,7 @@ void gltactics::game_manager::renderGameState() {
     BeginDrawing();
     ClearBackground(WHITE);
 
-    DrawRectangle(0,0,screenWidth, screenHeight, LIGHTGRAY);
+    DrawRectangle(0, 0, screenWidth, screenHeight, LIGHTGRAY);
 
     BeginMode3D(camera);
 
@@ -72,16 +84,39 @@ void gltactics::game_manager::renderGameState() {
     for (size_t y = 0; y < gltactics::DEFAULT_MAPSIZE; y++) {
         for (size_t x = 0; x < gltactics::DEFAULT_MAPSIZE; x++) {
             Vector3 wallPosition = {static_cast<float>(x), 0.0f, static_cast<float>(y)};
-            gltactics::tile &tile = currentMap[{y, x}];
-            renderTile(wallPosition, tile);
+            Vector2 tileRoom = {x, y};
+            if ((distance(_playerCharacter.position(), tileRoom) / 4) < 24.0f) {
+                gltactics::tile &tile = currentMap[{y, x}];
+                renderTile(wallPosition, tile);
+            }
         }
     }
-
     EndMode3D();
+
+    drawBlackOverlay();
 
     drawHud();
 
     EndDrawing();
+}
+
+void gltactics::game_manager::drawBlackOverlay() {
+    const Vector2 &pixelChar = GetWorldToScreen(this->_playerCharacter.position3D(), this->camera);
+    auto yMax = std::max(int(pixelChar.y - 125), 0);
+    DrawRectangle(0, 0, gltactics::game_manager::screenWidth, yMax, BLACK);
+    auto yMin = std::min(int(pixelChar.y + 125), int(gltactics::game_manager::screenHeight));
+    DrawRectangle(0, yMin, gltactics::game_manager::screenWidth, gltactics::game_manager::screenHeight - yMin, BLACK);
+    auto xMax = std::max(int(pixelChar.x - 125), 0);
+    DrawRectangle(0, 0, xMax, gltactics::game_manager::screenWidth, BLACK);
+    auto xMin = std::min(int(pixelChar.x + 125), int(gltactics::game_manager::screenWidth));
+    DrawRectangle(xMin, 0, gltactics::game_manager::screenWidth - xMin, gltactics::game_manager::screenHeight, BLACK);
+    for (size_t y = yMax; y < yMin; y++) {
+        for (size_t x = xMax; x < xMin; x++) {
+            if (sqrt(distance({x, y}, pixelChar)) > 125) {
+                DrawPixel(x, y, BLACK);
+            }
+        }
+    }
 }
 
 void gltactics::game_manager::drawHud() {
@@ -179,6 +214,8 @@ std::array<float, 2> gltactics::game_manager::calculateCameraChunk() const {
 }
 
 void gltactics::game_manager::drawGhost() {
-    Vector3 playerPosition = this->_ghost.position3D();
-    DrawCube(playerPosition, 1.0f, 1.0f, 1.0f, this->_ghost.color());
+    if ((distance(_playerCharacter.position(), _ghost.position()) / 4) < 24.0f) {
+        Vector3 playerPosition = this->_ghost.position3D();
+        DrawCube(playerPosition, 1.0f, 1.0f, 1.0f, this->_ghost.color());
+    }
 }

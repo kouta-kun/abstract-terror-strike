@@ -38,53 +38,67 @@ gltactics::tile &gltactics::map<map_size>::operator[](size_t index) {
 
 template<size_t map_size>
 std::optional<gltactics::chest> gltactics::map<map_size>::getChest(size_t id) {
-    if (this->chests[id] != nullptr) {
-        return *(this->chests[id]);
-    } else return std::optional<gltactics::chest>();
+    return this->chests[id];
 }
 
 template<size_t map_size>
-void gltactics::map<map_size>::setChest(size_t id, gltactics::chest *ptr) {
+void gltactics::map<map_size>::setChest(size_t id, std::optional<gltactics::chest> ptr) {
     if (ptr) chests[id] = ptr;
-    else chests[id] = nullptr;
+    else chests[id] = std::optional<gltactics::chest>();
+}
+
+bool operator==(Rectangle a, Rectangle b) {
+    return int(a.x) == int(b.x) && int(a.y) == int(b.y) && int(a.width) == int(b.width) &&
+           int(a.height) == int(b.height);
 }
 
 template<size_t map_size>
 bool gltactics::map<map_size>::inSameRoom(Vector2 a, Vector2 b) {
-    int x1 = int(a.x);
-    int y1 = int(a.y);
-    int x2 = int(b.x);
-    int y2 = int(b.y);
-    if (x1 > x2) {
-        int tx = x2;
-        int ty = y2;
-        x2 = x1;
-        y2 = y1;
-        x1 = tx;
-        y1 = ty;
-    }
-    int rh = y2 - y1;
-    int rw = x2 - x1;
-    for (int rx = 0; rx < rw; rx++) {
-        int ry = int(std::round(float(rh) / float(rw) * float(rx)));
-        size_t x = x1 + rx;
-        size_t y = y1 + ry;
-        if ((*this)[{y, x}].tileType == WALL) return false;
-    }
-    return true;
+//    int x1 = int(a.x);
+//    int y1 = int(a.y);
+//    int x2 = int(b.x);
+//    int y2 = int(b.y);
+//    if (x1 > x2) {
+//        int tx = x2;
+//        int ty = y2;
+//        x2 = x1;
+//        y2 = y1;
+//        x1 = tx;
+//        y1 = ty;
+//    }
+//    int rh = y2 - y1;
+//    int rw = x2 - x1;
+//    for (int rx = 0; rx < rw; rx++) {
+//        int ry = int(std::round(float(rh) / float(rw) * float(rx)));
+//        size_t x = x1 + rx;
+//        size_t y = y1 + ry;
+//        if ((*this)[{y, x}].tileType == WALL) return false;
+//    }
+//    return true;
+// the previous implementation should have been faster but i'm not sure it works.
+    return *roomAtPoint(a) == *roomAtPoint(b);
 }
 
 
 template<size_t map_size>
-Vector2 gltactics::map<map_size>::doorInRoom(Vector2 point) {
-    std::optional<std::pair<Rectangle, Vector2>> door;
-    for (auto &k : doorsSections) {
-        if (rectContains(k.first, point) && (!door || door->first.width > k.first.width || door->first.height > k.first.height))
-            door = k;
-    }
-    assert(bool(door));
-    return std::get<1>(*door);
+Vector2 gltactics::map<map_size>::doorInRoom(Vector2 point) const {
+    std::optional<Rectangle> room = roomAtPoint(point);
+    assert(bool(room));
+    return doorsSections.at(*room);
 }
+
+template
+        <size_t map_size>
+std::optional<Rectangle> gltactics::map<map_size>::roomAtPoint(Vector2 point) const {
+    std::optional<Rectangle> room;
+    for (auto &k : this->doorsSections) {
+        if (gltactics::rectContains(k.first, point) &&
+            (!room || room->width > k.first.width || room->height > k.first.height))
+            room = k.first;
+    }
+    return room;
+}
+
 
 size_t hash(Rectangle r) {
     return uint64_t(uint16_t(r.x)) << 48u | uint64_t(uint16_t(r.y)) << 32u | uint64_t(uint16_t(r.width)) << 16u |
@@ -102,6 +116,7 @@ template<size_t map_size>
 void gltactics::map<map_size>::addSection(Rectangle rect, Vector2 point) {
     doorsSections[rect] = point;
 }
+
 
 bool gltactics::rectContains(const Rectangle &a, const Rectangle &b) {
     bool hcontained = a.x >= b.x && (a.x + a.width) <= (b.x + b.width);

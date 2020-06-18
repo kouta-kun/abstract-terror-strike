@@ -50,6 +50,8 @@ namespace gltactics {
 
         void drawHud();
 
+        void drawBlackOverlay();
+
         [[nodiscard]] std::array<float, 2> calculateCameraChunk() const;
 
         void drawGhost();

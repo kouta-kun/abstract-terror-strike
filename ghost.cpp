@@ -21,7 +21,8 @@ void gltactics::ghost<map_size>::stepAi() {
 
     int targetX = int(target.x);
     int targetY = int(target.y);
-    if (ghostX == targetX && ghostY == targetY) {
+    if ((ghostX == targetX && ghostY == targetY) || (framesWithTarget++ > 15)) {
+        framesWithTarget = 0;
         std::array<size_t, 2> newPosition{};
         std::uniform_int_distribution<size_t> targetXDis(std::max(1, ghostX - 3),
                                                          std::min(int(map_size - 2), ghostX + 3));
@@ -34,7 +35,6 @@ void gltactics::ghost<map_size>::stepAi() {
         targetX = int(target.x);
         targetY = int(target.y);
     }
-    std::cout << "TARGET: (" << targetX << "," << targetY << "), CURPOS: (" << ghostX << "," << ghostY << ")\n";
     if (framesAlive++ % 10 == 0) {
         std::optional<direction> direction;
         Vector2 targetAi;
@@ -91,6 +91,11 @@ Vector3 gltactics::ghost<map_size>::position3D() {
 }
 
 template<size_t map_size>
+Vector2 gltactics::ghost<map_size>::position() {
+    return _position;
+}
+
+template<size_t map_size>
 Color gltactics::ghost<map_size>::color() {
     return _color;
 }
@@ -100,6 +105,7 @@ gltactics::ghost<map_size> &gltactics::ghost<map_size>::operator=(gltactics::map
     _map = newMap;
     return *this;
 }
+
 
 template
 class gltactics::ghost<gltactics::DEFAULT_MAPSIZE>;

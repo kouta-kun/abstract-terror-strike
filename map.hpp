@@ -64,7 +64,7 @@ namespace gltactics {
     class map {
         tile *layout = new tile[map_size * map_size]; // mapa cuadrado de NxN
 
-        chest **chests = new chest *[8]{nullptr};
+        std::array<std::optional<gltactics::chest>,8> chests = {std::optional<gltactics::chest>()};
 
         std::map<Rectangle, Vector2> doorsSections;
 
@@ -81,11 +81,13 @@ namespace gltactics {
 
         std::optional<chest> getChest(size_t id);
 
-        void setChest(size_t id, chest *ptr);
+        void setChest(size_t id, std::optional<chest> ptr);
 
         bool inSameRoom(Vector2 a, Vector2 b);
 
-        Vector2 doorInRoom(Vector2 point);
+        Vector2 doorInRoom(Vector2 point) const;
+        std::optional<Rectangle> roomAtPoint(Vector2 point) const;
+
 
         void addSection(Rectangle rect, Vector2 point);
     };

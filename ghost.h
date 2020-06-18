@@ -15,6 +15,7 @@ namespace gltactics {
         Vector2 target;
         std::reference_wrapper<std::mt19937_64> generator;
         int framesAlive = 0;
+        int framesWithTarget = 0;
 
     public:
         ghost(Color color, Vector2 position, map<map_size> &map, std::mt19937_64 &generator);
@@ -26,6 +27,7 @@ namespace gltactics {
         void move(gltactics::direction direction);
 
         Vector3 position3D();
+        Vector2 position();
 
         Color color();
         ghost<map_size> &operator=(map<map_size> &newMap);
