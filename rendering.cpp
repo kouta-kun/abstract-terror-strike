@@ -84,7 +84,7 @@ void gltactics::game_manager::renderGameState() {
     for (size_t y = 0; y < gltactics::DEFAULT_MAPSIZE; y++) {
         for (size_t x = 0; x < gltactics::DEFAULT_MAPSIZE; x++) {
             Vector3 wallPosition = {static_cast<float>(x), 0.0f, static_cast<float>(y)};
-            Vector2 tileRoom = {x, y};
+            Vector2 tileRoom = {static_cast<float>(x), static_cast<float>(y)};
             if ((distance(_playerCharacter.position(), tileRoom) / 4) < 24.0f) {
                 gltactics::tile &tile = currentMap[{y, x}];
                 renderTile(wallPosition, tile);
@@ -112,7 +112,7 @@ void gltactics::game_manager::drawBlackOverlay() {
     DrawRectangle(xMin, 0, gltactics::game_manager::screenWidth - xMin, gltactics::game_manager::screenHeight, BLACK);
     for (size_t y = yMax; y < yMin; y++) {
         for (size_t x = xMax; x < xMin; x++) {
-            if (sqrt(distance({x, y}, pixelChar)) > 125) {
+            if (sqrt(distance({static_cast<float>(x), static_cast<float>(y)}, pixelChar)) > 125) {
                 DrawPixel(x, y, BLACK);
             }
         }
