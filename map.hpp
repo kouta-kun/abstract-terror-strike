@@ -12,6 +12,8 @@
 #include "constants.hpp"
 #include "chest.hpp"
 #include "raylib.h"
+size_t hash(Rectangle r);
+bool operator<(Rectangle a, Rectangle b);
 
 namespace gltactics {
 
