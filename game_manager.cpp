@@ -4,7 +4,8 @@
 
 #include "game_manager.h"
 #include "image_cache.h"
-#include "rendering.hpp"
+#include <iostream>
+#include <regex>
 
 gltactics::ghost<> gltactics::game_manager::makeGhost(gltactics::map<> &map) {
     std::uniform_int_distribution<size_t> xyMap(1, DEFAULT_MAPSIZE - 2);
@@ -12,23 +13,17 @@ gltactics::ghost<> gltactics::game_manager::makeGhost(gltactics::map<> &map) {
     do {
         xyVec = {xyMap(generator), xyMap(generator)};
     } while (map[xyVec].tileType != AIR);
-    return gltactics::ghost<>(RED, {.x=float(xyVec[1]), .y=float(xyVec[0])}, map, generator);
+    return gltactics::ghost<>(RED, {(xyVec[1]), (xyVec[0])}, map, generator);
 }
 
-gltactics::game_manager::game_manager(std::mt19937_64 &generator) :
-        camera{
-                .position = (Vector3) {0.0f, 15.0f, 0.0f},
-                .target= (Vector3) {0.0f, 0.0f, 0.0f},
-                .up = (Vector3) {0.0f, 0.0f, -1.0f}, .fovy = 90.0f,
-                .type = CAMERA_PERSPECTIVE
-        },
+gltactics::game_manager::game_manager(std::mt19937_64 &generator, platform_builder builder) :
         generator{generator},
         mapGenerator(generator),
         currentMap(mapGenerator.buildMap()),
-        _playerCharacter(SKYBLUE, {1, 1}, currentMap),
-        _ghost{makeGhost(currentMap)} {
-    InitWindow(screenWidth, screenHeight, "gltactics");
-    SetTargetFPS(60); // Set our game to run at 30 frames-per-second
+        _playerCharacter({1, 1}, currentMap),
+        _ghost{makeGhost(currentMap)},
+        platformModule{builder(*this)} {
+    platformModule->initialize();
 }
 
 gltactics::character<> &gltactics::game_manager::getPlayerCharacter() {
@@ -39,28 +34,10 @@ gltactics::map<> &gltactics::game_manager::getMap() {
     return currentMap;
 }
 
-void gltactics::game_manager::handleInput() {
-    moveDirection = std::optional<gltactics::direction>();
-    useItems = false;
-    useEnvironment = false;
-    if (IsKeyPressed(KEY_LEFT))
-        moveDirection = gltactics::direction::left;
-    if (IsKeyPressed(KEY_RIGHT))
-        moveDirection = gltactics::direction::right;
-    if (IsKeyPressed(KEY_DOWN))
-        moveDirection = gltactics::direction::down;
-    if (IsKeyPressed(KEY_UP))
-        moveDirection = gltactics::direction::up;
-    if (IsKeyPressed(KEY_E))
-        useItems = true;
-    else if (IsKeyPressed(KEY_F))
-        useEnvironment = true;
-}
-
 void gltactics::game_manager::stepState() {
     if (moveDirection) {
         _playerCharacter.move(*moveDirection);
-        if (currentMap[_playerCharacter.positionArray()].tileType == EXIT) {
+        if (currentMap[_playerCharacter.position()].tileType == EXIT) {
             stepGen();
         }
     }
@@ -75,4 +52,19 @@ void gltactics::game_manager::stepGen() {
     this->currentMap = this->mapGenerator.buildMap();
     this->_playerCharacter = this->currentMap;
     this->_ghost = this->currentMap;
+}
+
+void gltactics::game_manager::renderGameState() {
+    this->platformModule->render();
+}
+
+void gltactics::game_manager::handleInput() {
+    auto in = this->platformModule->get_input();
+    moveDirection = in.movementDirection;
+    useEnvironment = in.environment;
+    useItems = in.items;
+}
+
+const gltactics::ghost<> &gltactics::game_manager::getGhost() const {
+    return _ghost;
 }

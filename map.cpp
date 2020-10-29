@@ -47,13 +47,8 @@ void gltactics::map<map_size>::setChest(size_t id, std::optional<gltactics::ches
     else chests[id] = std::optional<gltactics::chest>();
 }
 
-bool operator==(Rectangle a, Rectangle b) {
-    return int(a.x) == int(b.x) && int(a.y) == int(b.y) && int(a.width) == int(b.width) &&
-           int(a.height) == int(b.height);
-}
-
 template<size_t map_size>
-bool gltactics::map<map_size>::inSameRoom(Vector2 a, Vector2 b) {
+bool gltactics::map<map_size>::inSameRoom(std::array<size_t, 2> a, std::array<size_t, 2> b) {
 //    int x1 = int(a.x);
 //    int y1 = int(a.y);
 //    int x2 = int(b.x);
@@ -76,61 +71,41 @@ bool gltactics::map<map_size>::inSameRoom(Vector2 a, Vector2 b) {
 //    }
 //    return true;
 // the previous implementation should have been faster but i'm not sure it works.
-    return *roomAtPoint(a) == *roomAtPoint(b);
+    return deepestRoomAtPoint(a) == deepestRoomAtPoint(b);
 }
 
 
 template<size_t map_size>
-Vector2 gltactics::map<map_size>::doorInRoom(Vector2 point) const {
-    std::optional<Rectangle> room = roomAtPoint(point);
+std::array<size_t, 2> gltactics::map<map_size>::doorInRoom(std::array<size_t, 2> point) const {
+    std::optional<room_def> room = deepestRoomAtPoint(point);
     assert(bool(room));
     return doorsSections.at(*room);
 }
 
 template
         <size_t map_size>
-std::optional<Rectangle> gltactics::map<map_size>::roomAtPoint(Vector2 point) const {
-    std::optional<Rectangle> room;
+gltactics::room_def gltactics::map<map_size>::deepestRoomAtPoint(std::array<size_t, 2> point) const {
+    std::optional<gltactics::room_def> room;
     for (auto &k : this->doorsSections) {
         if (gltactics::rectContains(k.first, point) &&
-            (!room || room->width > k.first.width || room->height > k.first.height))
+            (!room || room->w > k.first.w || room->h > k.first.h))
             room = k.first;
     }
-    return room;
+    return *room;
 }
-
-
-size_t hash(Rectangle r) {
-    return uint64_t(uint16_t(r.x)) << 48u | uint64_t(uint16_t(r.y)) << 32u | uint64_t(uint16_t(r.width)) << 16u |
-           uint16_t(r.height);
-}
-
-bool operator<(const Rectangle a, const Rectangle b) {
-    auto hashA = hash(a);
-    auto hashB = hash(b);
-    return hashA < hashB;
-}
-
 
 template<size_t map_size>
-void gltactics::map<map_size>::addSection(Rectangle rect, Vector2 point) {
+void gltactics::map<map_size>::addSection(room_def rect, std::array<size_t, 2> point) {
     doorsSections[rect] = point;
-}
-
-
-bool gltactics::rectContains(const Rectangle &a, const Rectangle &b) {
-    bool hcontained = a.x >= b.x && (a.x + a.width) <= (b.x + b.width);
-    bool vcontained = a.y >= b.y && (a.y + a.height) <= (b.y + b.height);
-    return hcontained && vcontained;
 }
 
 template<size_t map_size>
 void gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, const rangeFunction &mapFunction,
                              bool &exitLoop) {
-    size_t xMin = std::max((size_t) 0, (size_t) playerCharacter.position().x - 1);
-    size_t xMax = std::min(map_size - 1, (size_t) playerCharacter.position().x + 1);
-    size_t yMin = std::max((size_t) 0, (size_t) playerCharacter.position().y - 1);
-    size_t yMax = std::min(map_size - 1, (size_t) playerCharacter.position().y + 1);
+    size_t xMin = std::max((size_t) 0, (size_t) playerCharacter.position()[1] - 1);
+    size_t xMax = std::min(map_size - 1, (size_t) playerCharacter.position()[1] + 1);
+    size_t yMin = std::max((size_t) 0, (size_t) playerCharacter.position()[0] - 1);
+    size_t yMax = std::min(map_size - 1, (size_t) playerCharacter.position()[0] + 1);
     for (size_t x = xMin; x <= xMax; x++) {
         for (size_t y = yMin; y <= yMax; y++) {
             mapFunction(x, y, playerCharacter.parent(), exitLoop);
@@ -146,9 +121,9 @@ bool gltactics::overMapRange(gltactics::character<map_size> &playerCharacter, co
     return breakLoop;
 }
 
-bool gltactics::rectContains(const Rectangle &rect, const Vector2 &point) {
-    bool hcontained = point.x >= rect.x && point.x <= (rect.x + rect.width);
-    bool vcontained = point.y >= rect.y && point.y <= (rect.y + rect.height);
+bool gltactics::rectContains(const room_def &rect, const std::array<size_t, 2> &point) {
+    bool hcontained = point[1] >= rect.x && point[1] <= (rect.x + rect.w);
+    bool vcontained = point[0] >= rect.y && point[0] <= (rect.y + rect.h);
     return hcontained && vcontained;
 }
 
@@ -158,3 +133,35 @@ gltactics::overMapRange<gltactics::DEFAULT_MAPSIZE>(gltactics::character<gltacti
 
 template
 class gltactics::map<gltactics::DEFAULT_MAPSIZE>;
+
+gltactics::room_def::room_def(size_t x, size_t y, size_t w, size_t h) : x(x), y(y), w(w), h(h) {}
+
+gltactics::room_def::room_def(room_def &parent, size_t x, size_t y, size_t w, size_t h)
+        : parent(parent), x(x), y(y), w(w), h(h) {}
+
+std::set<gltactics::room_def>
+gltactics::getParentSet(const gltactics::room_def &room) {
+    std::set<gltactics::room_def> parentSet;
+    std::reference_wrapper<const gltactics::room_def> iter = room;
+    while ((bool) iter.get().parent) {
+        const std::reference_wrapper<gltactics::room_def> &pointer = *(iter.get().parent);
+        parentSet.insert(pointer.get());
+        iter = pointer;
+    }
+    return parentSet;
+}
+
+bool gltactics::room_def::contains(const gltactics::room_def &b) {
+    return gltactics::getParentSet(*this).contains(b);
+}
+
+std::partial_ordering gltactics::operator<=>(const room_def &a, const room_def &b) {
+    if (a.x == b.x && a.y == b.y && a.w == b.w && a.h == b.h) return std::partial_ordering::equivalent;
+    if (getParentSet(a).contains(b)) return std::partial_ordering::less;
+    if (getParentSet(b).contains(a)) return std::partial_ordering::greater;
+    return std::partial_ordering::unordered;
+}
+
+bool gltactics::operator==(const gltactics::room_def &a, const gltactics::room_def &b) {
+    return (a <=> b) == std::partial_ordering::equivalent;
+}

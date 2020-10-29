@@ -4,7 +4,6 @@
 
 #include <vector>
 #include <tuple>
-#include "raylib.h"
 #include <cstdint>
 
 #ifndef ABSTRACT_TERROR_STRIKE_GEN_ICONS_H
@@ -20,7 +19,7 @@ namespace gltactics {
 
     cmpIcon make_key_icon();
 
-    Image iconToImage(const cmpIcon& icon, Color color);
+//    Image iconToImage(const cmpIcon& icon, Color color);
 };
 #define ABSTRACT_TERROR_STRIKE_GEN_ICONS_H
 

@@ -5,19 +5,25 @@
 #ifndef ABSTRACT_TERROR_STRIKE_GAME_MANAGER_H
 #define ABSTRACT_TERROR_STRIKE_GAME_MANAGER_H
 
+static const char *const command_format = "([udlr]{1})?e?f?";
+
 #include "map.hpp"
 #include "map_generator.hpp"
 #include "character.hpp"
 #include "ghost.h"
+#include "platform_module.h"
+#include "direction.hpp"
 #include <chrono>
 
 namespace gltactics {
+    class game_manager;
+    typedef gltactics::platform_module*(*platform_builder)(game_manager&);
     class game_manager {
         gltactics::map_generator mapGenerator;
         gltactics::map<> currentMap;
         gltactics::character<> _playerCharacter;
-        Camera3D camera;
-        std::optional<gltactics::direction> moveDirection;
+        std::optional<direction> moveDirection;
+        gltactics::platform_module *platformModule;
         std::mt19937_64 generator;
         ghost<> _ghost;
         bool useItems = false;
@@ -26,7 +32,7 @@ namespace gltactics {
         static const size_t screenWidth = 640;
         static const size_t screenHeight = 480;
 
-        game_manager(std::mt19937_64 &generator);
+        game_manager(std::mt19937_64 &generator, platform_builder builder);
 
         gltactics::character<> &getPlayerCharacter();
 
@@ -34,27 +40,13 @@ namespace gltactics {
 
         gltactics::ghost<> makeGhost(gltactics::map<> &map);
 
+        const ghost<> &getGhost() const;
+
         void handleInput();
 
         void stepState();
 
         void renderGameState();
-
-        void cameraPositionChunk();
-
-        static void drawFloor();
-
-        void drawPlayer();
-
-        static void renderTile(const Vector3 &tilePosition, const gltactics::tile &tile);
-
-        void drawHud();
-
-        void drawBlackOverlay();
-
-        [[nodiscard]] std::array<float, 2> calculateCameraChunk() const;
-
-        void drawGhost();
 
         void stepGen();
     };

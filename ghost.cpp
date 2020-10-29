@@ -4,9 +4,10 @@
 
 #include <iostream>
 #include "ghost.h"
+#include "direction.hpp"
 
 template<size_t map_size>
-gltactics::ghost<map_size>::ghost(Color color, Vector2 position, map<map_size> &map, std::mt19937_64 &generator)
+gltactics::ghost<map_size>::ghost(Color color, std::array<size_t, 2> position, map<map_size> &map, std::mt19937_64 &generator)
         : _color{color},
           _position{position},
           _map{map}, generator{generator},
@@ -16,11 +17,11 @@ gltactics::ghost<map_size>::ghost(Color color, Vector2 position, map<map_size> &
 template<size_t map_size>
 void gltactics::ghost<map_size>::stepAi() {
     map<map_size> &map = _map;
-    int ghostX = int(_position.x);
-    int ghostY = int(_position.y);
+    int ghostX = int(_position[1]);
+    int ghostY = int(_position[0]);
 
-    int targetX = int(target.x);
-    int targetY = int(target.y);
+    int targetX = int(target[1]);
+    int targetY = int(target[0]);
     if ((ghostX == targetX && ghostY == targetY) || (framesWithTarget++ > 15)) {
         framesWithTarget = 0;
         std::array<size_t, 2> newPosition{};
@@ -31,13 +32,13 @@ void gltactics::ghost<map_size>::stepAi() {
         do {
             newPosition = {targetYDis(generator.get()), targetXDis(generator.get())};
         } while (map[newPosition].tileType != AIR);
-        target = {.x=static_cast<float>(newPosition[1]), .y=static_cast<float>(newPosition[0])};
-        targetX = int(target.x);
-        targetY = int(target.y);
+        target = {(newPosition[1]), (newPosition[0])};
+        targetX = int(target[1]);
+        targetY = int(target[0]);
     }
     if (framesAlive++ % 10 == 0) {
-        std::optional<direction> direction;
-        Vector2 targetAi;
+        std::optional<gltactics::direction> direction;
+        std::array<size_t, 2> targetAi;
         targetAi = map.inSameRoom(target, _position) ? target : map.doorInRoom(_position);
         std::vector<gltactics::direction> possibleDirections = directionsToward(targetAi);
         if (!possibleDirections.empty()) {
@@ -50,15 +51,15 @@ void gltactics::ghost<map_size>::stepAi() {
 }
 
 template<size_t map_size>
-std::vector<gltactics::direction> gltactics::ghost<map_size>::directionsToward(const Vector2 &toward) const {
-    std::vector<direction> possibleDirections;
-    if (toward.x < _position.x) possibleDirections.push_back(gltactics::direction::left);
-    else if (toward.x > _position.x) possibleDirections.push_back(gltactics::direction::right);
-    if (toward.y < _position.y) possibleDirections.push_back(gltactics::direction::up);
-    else if (toward.y > _position.y) possibleDirections.push_back(gltactics::direction::down);
+std::vector<gltactics::direction> gltactics::ghost<map_size>::directionsToward(const std::array<size_t, 2> &toward) const {
+    std::vector<gltactics::direction> possibleDirections;
+    if (toward[1] < _position[1]) possibleDirections.push_back(direction::left);
+    else if (toward[1] > _position[1]) possibleDirections.push_back(direction::right);
+    if (toward[0] < _position[0]) possibleDirections.push_back(direction::up);
+    else if (toward[0] > _position[0]) possibleDirections.push_back(direction::down);
     std::remove_if(std::begin(possibleDirections), std::end(possibleDirections), [&](direction a) {
         map<map_size> &map = _map.get();
-        size_t idx = size_t((_position.y * map_size) + _position.x) + a;
+        size_t idx = size_t((_position[0] * map_size) + _position[1]) + a;
         tile &tile = map[idx];
         return tile.tileType == WALL;
     });
@@ -66,8 +67,8 @@ std::vector<gltactics::direction> gltactics::ghost<map_size>::directionsToward(c
 }
 
 template<size_t map_size>
-void gltactics::ghost<map_size>::move(gltactics::direction direction) {
-    size_t destination = (size_t) (_position.y * map_size + _position.x) + direction;
+void gltactics::ghost<map_size>::move(direction direction) {
+    size_t destination = (size_t) (_position[0] * map_size + _position[1]) + direction;
     map<map_size> &wrapper = _map;
     tile tile = wrapper[destination];
     type blockType = tile.tileType;
@@ -80,26 +81,15 @@ void gltactics::ghost<map_size>::move(gltactics::direction direction) {
         blockType = tile.tileType;
     }
     if (blockType == AIR) {
-        _position.y = int(destination / map_size);
-        _position.x = int(destination % map_size);
+        _position[0] = int(destination / map_size);
+        _position[1] = int(destination % map_size);
     }
 }
 
 template<size_t map_size>
-Vector3 gltactics::ghost<map_size>::position3D() {
-    return Vector3{_position.x, 0.0f, _position.y};
-}
-
-template<size_t map_size>
-Vector2 gltactics::ghost<map_size>::position() {
+std::array<size_t, 2> gltactics::ghost<map_size>::position() const {
     return _position;
 }
-
-template<size_t map_size>
-Color gltactics::ghost<map_size>::color() {
-    return _color;
-}
-
 template<size_t map_size>
 gltactics::ghost<map_size> &gltactics::ghost<map_size>::operator=(gltactics::map<map_size> &newMap) {
     _map = newMap;

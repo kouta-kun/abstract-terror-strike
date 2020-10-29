@@ -6,10 +6,11 @@
 #include "map_generator.hpp"
 #include "character.hpp"
 #include <cmath>
+
 size_t
 gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t height, size_t horDoor) {
     if (height <= 6) return -1;
-    size_t leftRoomWidth = width/2; // separes room into left and right rooms
+    size_t leftRoomWidth = width / 2; // separes room into left and right rooms
     size_t wRandMod = 2;
     std::uniform_int_distribution<> wDis(-wRandMod, wRandMod);
     size_t hRandMod = (height - 1);
@@ -47,7 +48,7 @@ gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t
     }
     m[y + vertDoor][x + leftRoomWidth].tileType = gltactics::DOOR;
     doors.push_back({y + vertDoor, x + leftRoomWidth});
-    sectors.push_back(Rectangle({.x=float(x), .y=float(y), .width=float(width), .height=float(height)}));
+    sectors.push_back(gltactics::room_def({.x=x, .y=y, .w=width, .h=height}));
     size_t rightRoomWidth = width - leftRoomWidth;
     if (!(leftRoomWidth * height <= 16 || rightRoomWidth * height <= 16)) {
         horizontalSplit(x, y, leftRoomWidth, height, vertDoor);
@@ -59,10 +60,7 @@ gltactics::map_generator::verticalSplit(size_t x, size_t y, size_t width, size_t
 void
 gltactics::map_generator::horizontalSplit(size_t x, size_t y, size_t width, size_t height, size_t vertDoor) {
     if (width <= 6) return;
-    if (mapList.size() == 6) {
-        std::cout << mapList.size() << '\n';
-    }
-    size_t topRoomHeight = height/2; // separates room into top and bottom rooms
+    size_t topRoomHeight = height / 2; // separates room into top and bottom rooms
     size_t wRandMod = width - 1;
     std::uniform_int_distribution<> wDis(1, wRandMod);
     size_t hRandMod = 2;
@@ -99,7 +97,7 @@ gltactics::map_generator::horizontalSplit(size_t x, size_t y, size_t width, size
     m[y + topRoomHeight][x + horDoor].tileType = gltactics::DOOR;
     m[y + topRoomHeight][x + horDoor].attributeType = gltactics::HORIZONTAL;
     doors.push_back({y + topRoomHeight, x + horDoor});
-    sectors.push_back({.x=float(std::max(int(x)-1,0)), .y=float(std::max(int(y)-1, 0)), .width=float(width+1), .height=float(height+1)});
+    sectors.push_back({.x=(size_t)(std::max(int(x) - 1, 0)), .y=(size_t)(std::max(int(y) - 1, 0)), .w=(width + 1), .h=(height + 1)});
     auto bottomRoomHeight = height - topRoomHeight;
     if (bottomRoomHeight * width <= 16 || topRoomHeight * width <= 16) return;
     verticalSplit(x, y, width, topRoomHeight, horDoor);
@@ -186,12 +184,11 @@ gltactics::map<gltactics::DEFAULT_MAPSIZE> gltactics::map_generator::buildMap() 
     for (int i = 0; i < 8; i++) generatedMap.setChest(i, chests[i] ? *(chests[i]) : std::optional<chest>());
     auto size = doors.size();
     std::list<std::array<size_t, 2>> tmpDoors;
-    std::list<Rectangle> tmpSectors;
+    std::list<room_def> tmpSectors;
     for (int i = 0; i < size; i++) {
         std::array<size_t, 2> &point = doors.front();
-        Vector2 door = {float(point[1]), float(point[0])};
-        Rectangle &sector = sectors.front();
-        std::cout << sector.x << ',' << sector.y << ',' << sector.width << ',' << sector.height << '\n';
+        std::array<size_t, 2> door = {(point[1]), (point[0])};
+        room_def &sector = sectors.front();
         generatedMap.addSection(sector, door);
         tmpDoors.push_front(doors.front());
         doors.pop_front();
@@ -218,7 +215,8 @@ gltactics::map<gltactics::map_generator::map_size> gltactics::map_generator::cop
 
 void gltactics::map_generator::initialize() {
     std::fill(std::begin(this->chests), std::end(this->chests), std::optional<chest>());
-    std::fill(&this->m[0][0], &this->m[gltactics::map_generator::map_size - 1][gltactics::map_generator::map_size - 1] + 1, 0);
+    std::fill(&this->m[0][0],
+              &this->m[gltactics::map_generator::map_size - 1][gltactics::map_generator::map_size - 1] + 1, 0);
     for (int i = 0; i < gltactics::map_generator::map_size; i++) {
         this->m[0][i].tileType = gltactics::WALL;
         this->m[i][0].tileType = gltactics::WALL;

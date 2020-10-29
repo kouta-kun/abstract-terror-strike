@@ -3,6 +3,7 @@
 //
 
 #include "character.hpp"
+#include "direction.hpp"
 
 template<size_t map_size>
 void gltactics::character<map_size>::openDoor(size_t x, size_t y, gltactics::map<map_size> &mapRef) {
@@ -32,28 +33,19 @@ void gltactics::character<map_size>::useChest(size_t x, size_t y, gltactics::map
 }
 
 template<size_t map_size>
-void gltactics::character<map_size>::setPosition(Vector2 position) {
-    this->_position = position;
-}
-
-template<size_t map_size>
-Vector3 gltactics::character<map_size>::position3D() const {
-    return Vector3{_position.x, 0.0f, _position.y};
-}
-
-template<size_t map_size>
-const Vector2 &gltactics::character<map_size>::position() const {
+const std::array<size_t, 2> &gltactics::character<map_size>::position() const {
     return _position;
 }
 
 template<size_t map_size>
 bool gltactics::character<map_size>::move(direction dir) {
-    size_t destination = (size_t) (_position.y * map_size + _position.x) + dir;
+    size_t destination = (size_t) (_position[0] * map_size + _position[1]) + dir;
     map<map_size> &wrapper = _map;
     type blockType = wrapper[destination].tileType;
-    if (blockType == AIR || (blockType == DOOR && (wrapper[destination].attributeType & OPEN) > 0) || blockType == EXIT) {
-        _position.y = int(destination / map_size);
-        _position.x = int(destination % map_size);
+    if (blockType == AIR || (blockType == DOOR && (wrapper[destination].attributeType & OPEN) > 0) ||
+        blockType == EXIT) {
+        _position[0] = int(destination / map_size);
+        _position[1] = int(destination % map_size);
         return true;
     }
     return false;
@@ -89,25 +81,13 @@ std::set<int> gltactics::character<map_size>::getInventoryList() const {
 }
 
 template<size_t map_size>
-void gltactics::character<map_size>::setColor(Color color) {
-    this->_color = color;
-}
-
-template<size_t map_size>
-const Color &gltactics::character<map_size>::color() const {
-    return _color;
-}
-
-template<size_t map_size>
 gltactics::map<map_size> &gltactics::character<map_size>::parent() {
     return _map;
 }
 
 template<size_t map_size>
-gltactics::character<map_size>::character(Color color, Vector2 position, gltactics::map<map_size> &map) : _color{color},
-                                                                                                          _position{
-                                                                                                                  position},
-                                                                                                          _map{map} {}
+gltactics::character<map_size>::character(std::array<size_t, 2> position, gltactics::map<map_size> &map)
+        : _position{position}, _map{map} {}
 
 template<size_t map_size>
 gltactics::character<map_size> &gltactics::character<map_size>::operator=(gltactics::map<map_size> &newMap) {
@@ -117,13 +97,8 @@ gltactics::character<map_size> &gltactics::character<map_size>::operator=(gltact
 
 template<size_t map_size>
 gltactics::character<map_size> &gltactics::character<map_size>::operator=(std::array<size_t, 2> newPosition) {
-    this->setPosition((Vector2){(float)newPosition[0], (float)newPosition[1]});
+    _position = newPosition;
     return *this;
-}
-
-template<size_t map_size>
-std::array<size_t, 2> gltactics::character<map_size>::positionArray() {
-    return {(size_t)_position.y, (size_t)_position.x};
 }
 
 template

@@ -18,7 +18,7 @@ namespace gltactics {
       bool hFlip = true; // flips on every map generation to build continuously playable maps
       std::array<int64_t, 2> lastExit = {-1, -1};
       std::list<std::array<size_t, 2>> doors;
-      std::list<Rectangle> sectors;
+      std::list<room_def> sectors;
       void initialize();
       gltactics::map<map_size> copyMap() const;
     public:

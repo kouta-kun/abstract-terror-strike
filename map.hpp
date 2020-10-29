@@ -9,13 +9,29 @@
 #include <optional>
 #include <functional>
 #include <map>
+#include <set>
 #include "constants.hpp"
 #include "chest.hpp"
-#include "raylib.h"
-size_t hash(Rectangle r);
-bool operator<(Rectangle a, Rectangle b);
 
 namespace gltactics {
+
+    struct room_def {
+        std::optional<std::reference_wrapper<room_def>> parent;
+        size_t x, y;
+        size_t w, h;
+
+        room_def(size_t x, size_t y, size_t w, size_t h);
+
+        room_def(room_def &parent, size_t x, size_t y, size_t w, size_t h);
+
+        bool contains(const room_def &b);
+    };
+
+    std::set<room_def> getParentSet(const room_def &);
+
+    std::partial_ordering operator<=>(const room_def &a, const room_def &b);
+
+    bool operator==(const room_def &a, const room_def &b);;
 
     enum type : uint8_t {
         AIR = 0,
@@ -66,9 +82,11 @@ namespace gltactics {
     class map {
         tile *layout = new tile[map_size * map_size]; // mapa cuadrado de NxN
 
-        std::array<std::optional<gltactics::chest>,8> chests = {std::optional<gltactics::chest>()};
+        std::array<std::optional<gltactics::chest>, 8> chests = {std::optional<gltactics::chest>()};
 
-        std::map<Rectangle, Vector2> doorsSections;
+        std::map<gltactics::room_def, std::array<size_t, 2>> doorsSections;
+
+        gltactics::room_def parentRoom{0, 0, map_size, map_size};
 
 
     public:
@@ -85,26 +103,17 @@ namespace gltactics {
 
         void setChest(size_t id, std::optional<chest> ptr);
 
-        bool inSameRoom(Vector2 a, Vector2 b);
+        bool inSameRoom(std::array<size_t, 2> a, std::array<size_t, 2> b);
 
-        Vector2 doorInRoom(Vector2 point) const;
-        std::optional<Rectangle> roomAtPoint(Vector2 point) const;
+        std::array<size_t, 2> doorInRoom(std::array<size_t, 2> point) const;
+
+        room_def deepestRoomAtPoint(std::array<size_t, 2> point) const;
 
 
-        void addSection(Rectangle rect, Vector2 point);
+        void addSection(room_def rect, std::array<size_t, 2> point);
     };
 
-    // layout[current_position + direction] da referencia al bloque en esa direccion
-    enum direction {
-        up = -DEFAULT_MAPSIZE,
-        left = -1,
-        right = 1,
-        down = DEFAULT_MAPSIZE
-    };
-
-    bool rectContains(const Rectangle &rect, const Vector2 &point);
-
-    bool rectContains(const Rectangle &a, const Rectangle &b);
+    bool rectContains(const room_def &rect, const std::array<size_t, 2> &point);
 
     typedef std::function<void(size_t, size_t, gltactics::map<> &, bool &)> rangeFunction;
 

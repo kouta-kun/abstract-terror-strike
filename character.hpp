@@ -4,14 +4,13 @@
 #include <set>
 #include "map.hpp"
 #include "chest.hpp"
-#include "raylib.h"
+#include "direction.hpp"
 
 namespace gltactics {
     template<size_t map_size = DEFAULT_MAPSIZE>
     class character {
         std::reference_wrapper<map<map_size>> _map;
-        Color _color;
-        Vector2 _position;
+        std::array<size_t, 2> _position;
         std::set<gltactics::item> _inventory;
 
         void useChest(size_t x, size_t y, gltactics::map<map_size> &mapRef);
@@ -19,13 +18,9 @@ namespace gltactics {
         void openDoor(size_t x, size_t y, gltactics::map<map_size> &mapRef);
 
     public:
-        character(Color color, Vector2 position, map<map_size> &map);
+        character(std::array<size_t, 2> position, map<map_size> &map);
 
         map<map_size> &parent();
-
-        [[nodiscard]] const Color &color() const;
-
-        void setColor(Color color);
 
         [[nodiscard]] std::set<int> getInventoryList() const;
 
@@ -33,11 +28,7 @@ namespace gltactics {
 
         bool move(direction dir);
 
-        [[nodiscard]] const Vector2 &position() const;
-
-        [[nodiscard]] Vector3 position3D() const;
-
-        void setPosition(Vector2 position);
+        [[nodiscard]] const std::array<size_t, 2> &position() const;
 
         void useItems();
 
@@ -47,8 +38,6 @@ namespace gltactics {
         character<map_size> &operator=(map<map_size> &newMap);
 
         character<map_size> &operator=(std::array<size_t, 2> newPosition);
-
-        std::array<size_t, 2> positionArray();
     };
 
     template<size_t map_size>
