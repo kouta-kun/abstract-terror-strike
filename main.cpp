@@ -8,6 +8,7 @@
 #include "gen_icons.h"
 #include "game_manager.h"
 #include "stdio_platform.h"
+#include "glfwInitialization.h"
 //#include "povray_platform.h"
 #include <glfw_platform.h>
 

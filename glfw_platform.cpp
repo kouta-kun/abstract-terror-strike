@@ -2,14 +2,12 @@
 // Created by kouta on 28/10/20.
 //
 #include "glfw_platform.h"
+#include "glfwInitialization.h"
 #include <iostream>
-
-gltactics::model gltactics::model::playerModel = gltactics::model("player.obj");
-gltactics::model gltactics::model::wallModel = gltactics::model("wallModel.obj");
 
 static gltactics::input_status status;
 
-static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+void gltactics::glfw_platform::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
         status.
                 movementDirection = gltactics::direction::up;
@@ -37,193 +35,107 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
     }
 }
 
-gltactics::model::model(std::string input_file) {
-    const aiScene *g_scene = nullptr;
-    Assimp::Importer importer;
-    g_scene = importer.ReadFile(input_file, aiProcessPreset_TargetRealtime_Quality);
-    if (!g_scene) {
-        std::cout << importer.GetErrorString() << std::endl;
-        exit(1);
-    }
-    const struct aiNode *parent = g_scene->mRootNode;
-
-    insertNode(parent, g_scene);
-
-}
-
-void gltactics::model::insertNode(const aiNode *node, const aiScene *g_scene) {
-    for (uint n = 0; n < node->mNumMeshes; n++) {
-        const struct aiMesh *mesh = g_scene->mMeshes[node->mMeshes[n]];
-
-        for (uint t = 0; t < mesh->mNumFaces; t++) {
-            const struct aiFace *face = &mesh->mFaces[t];
-            for (uint idx = 0; idx < face->mNumIndices; idx++) {
-                this->indexes.push_back(this->vertex.size() / 3 + face->mIndices[idx]);
-            }
-        }
-        for (uint idx = 0; idx < mesh->mNumVertices; idx++) {
-            glm::vec4 vert = glm::vec4(mesh->mVertices[idx].x, mesh->mVertices[idx].y, mesh->mVertices[idx].z, 1);
-            this->vertex.push_back(vert.x);
-            this->vertex.push_back(vert.y);
-            this->vertex.push_back(vert.z);
-        }
-    }
-    for (uint n = 0; n < node->mNumChildren; n++) {
-        insertNode(node->mChildren[n], g_scene);
-    }
-}
-
-gltactics::glfw_platform::glfw_platform(gltactics::game_manager &manager) : manager{manager} {
-    this->window = nullptr;
-}
-
-static inline void initializeGLFW() {
-    glewExperimental = GL_TRUE;
-    if (!glfwInit()) {
-        std::cerr << "GLFW couldn't init" << std::endl;
-        exit(1);
-    }
-}
-
-static inline GLFWwindow *getWindow() {
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    return glfwCreateWindow(gltactics::width, gltactics::height, "Abstract Terror Strike", NULL, NULL);
-}
-
-void gltactics::glfw_platform::loadShaders() {
-    this->ShaderProgram = gltactics::LoadShaders("vertexShader.glsl", "fragmentShader.glsl");
-    this->MatrixID = glGetUniformLocation(this->ShaderProgram, "MVP");
-    this->ModelColor = glGetUniformLocation(this->ShaderProgram, "ModelColor");
-}
-
-void gltactics::glfw_platform::makeBuffers() {
-    glGenVertexArrays(1, &VertexArrayId);
-    glBindVertexArray(this->VertexArrayId);
-    glGenBuffers(1, &this->floorVertexBuffer);
-    glGenBuffers(1, &this->charVertexBuffer);
-    glGenBuffers(1, &this->charElementBuffer);
-    glGenBuffers(1, &this->wallVertexBuffer);
-    glGenBuffers(1, &this->wallElementBuffer);
-}
-
-void gltactics::glfw_platform::initialize() {
-
-    initializeGLFW();
-
-
-    this->window = getWindow();
-    if (window == nullptr) {
-        std::cerr << "Couldn't open window" << std::endl;
-        exit(1);
-    }
-
-    glfwMakeContextCurrent(this->window);
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-        std::cerr << "GLEW could not init" << std::endl;
-        exit(1);
-    }
-    makeBuffers();
-    loadShaders();
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    glBindBuffer(GL_ARRAY_BUFFER, floorVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(floorBlockModel), floorBlockModel, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, charVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, model::playerModel.vertex.size() * sizeof(float),
-                 model::playerModel.vertex.data(), GL_STATIC_DRAW);
-
-    this->charIndexCount = model::playerModel.indexes.size();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, charElementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, charIndexCount * sizeof(unsigned int),
-                 model::playerModel.indexes.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, wallVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, model::wallModel.vertex.size() * sizeof(float),
-                 model::wallModel.vertex.data(), GL_STATIC_DRAW);
-
-    this->wallIndexCount = model::wallModel.indexes.size();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wallElementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, wallIndexCount * sizeof(unsigned int),
-                 model::wallModel.indexes.data(), GL_STATIC_DRAW);
-
-    glfwSetKeyCallback(this->window, key_callback);
-}
-
-glm::mat4 gltactics::glfw_platform::getMVPmat(float x, float y, float z) const {
-    const std::array<size_t, 2> &pos = manager.getPlayerCharacter().position();
-    unsigned long posX = pos[1];
-    unsigned long posY = pos[0];
-    glm::mat4 view = glm::lookAt(glm::vec3(camX + posX, camY, camZ + posY),
-                                 glm::vec3(posX, 0, posY),
-                                 glm::vec3(0, -1, 0));
-
-    std::cout << "\rCamera pos: (" << camX << ',' << camY << ',' << camZ << ");";
-    std::cout.flush();
+glm::mat4 gltactics::glfw_platform::getTranslateMVPmat(float x, float y, float z) const {
+    glm::mat4 vp = projection * getViewMat();
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
-    glm::mat4 mvp = this->projection * view * model;
+    glm::mat4 mvp = vp * model;
 
     return mvp;
+}
+
+
+glm::mat4 gltactics::glfw_platform::getTranslateRotateMVPmat(float x, float y, float z, float ry) const {
+    glm::mat4 vp = projection * getViewMat();
+
+    glm::mat4 rotateMat = getModelMat(x, y, z, ry);
+    glm::mat4 mvp = vp * rotateMat;
+    return mvp;
+}
+
+glm::mat4 gltactics::glfw_platform::getModelMat(float x, float y, float z, float ry) const {
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
+    glm::mat4 rotateMat = glm::rotate(model, ry, glm::vec3(0, 1, 0));
+    return rotateMat;
+}
+
+glm::mat4 gltactics::glfw_platform::getViewMat() const {
+    const std::array<size_t, 2> &pos = this->manager.getPlayerCharacter().position();
+    unsigned long posX = pos[1];
+    unsigned long posY = pos[0];
+    glm::mat4 view = glm::lookAt(glm::vec3(this->camX + posX, this->camY, this->camZ + posY),
+                                 glm::vec3(posX, 0, posY),
+                                 glm::vec3(0, -1, 0));
+    return view;
 }
 
 void gltactics::glfw_platform::render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     float color[3] = {1.0, 0.0, 0.0};
 
-    glUseProgram(ShaderProgram);
 
-    glUniform3fv(ModelColor, 1, color);
-    glEnableVertexAttribArray(0);
+//    for (int x = 0; x < DEFAULT_MAPSIZE; x++) {
+//        for (int y = 0; y < DEFAULT_MAPSIZE; y++) {
+//            setMVPTransformation(x, 0, y, this->CCSMatrixId);
+//            drawTriangleArray(floorVertexBuffer, floorVertexCount, color);
+//        }
+//    }
 
-    glBindBuffer(GL_ARRAY_BUFFER, floorVertexBuffer);
-    glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,
-            nullptr
-    );
+    color[0] = 1.0f;
+    color[1] = 1.0f;
+    color[2] = 1.0f;
 
-    for (int x = 0; x < DEFAULT_MAPSIZE; x++) {
-        for (int y = 0; y < DEFAULT_MAPSIZE; y++) {
-            glm::mat4 mvp = getMVPmat(x, 0, y);
-            glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-            glDrawArrays(GL_TRIANGLES, 0, sizeof(floorBlockModel) / sizeof(float));
+    for (size_t x = 0; x < DEFAULT_MAPSIZE; x++) {
+        for (size_t y = 0; y < DEFAULT_MAPSIZE; y++) {
+            if (manager.getMap()[{y, x}].tileType == gltactics::type::WALL) {
+                wall->addUniformFunction("MVP", [this, x, y](GLuint modelUniform, const glMesh &mesh) {
+                    const glm::mat4 &pmat = getTranslateMVPmat(x, 0, y);
+                    glUniformMatrix4fv(modelUniform, 1, false, &pmat[0][0]);
+                });
+                wall->draw();
+            }
+        }
+    }
+
+    color[0] = 1.0f;
+    color[1] = 0.5f;
+    color[2] = 0.25f;
+
+    for (size_t x = 0; x < DEFAULT_MAPSIZE; x++) {
+        for (size_t y = 0; y < DEFAULT_MAPSIZE; y++) {
+            if (manager.getMap()[{y, x}].tileType == gltactics::type::EXIT) {
+                stair->addUniformFunction("Model", [this, x, y](GLuint modelUniform, const glMesh &mesh) {
+                    const glm::mat4 &pmat = getModelMat(x, 0, y, 0);
+                    glUniformMatrix4fv(modelUniform, 1, false, &pmat[0][0]);
+                });
+                stair->draw();
+            }
         }
     }
 
     color[0] = 1.0f;
     color[1] = 1.0f;
-    color[2] = 1.0f;
-    glUniform3fv(ModelColor, 1, color);
-
-    glBindBuffer(GL_ARRAY_BUFFER, wallVertexBuffer);
-    glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,
-            nullptr
-    );
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wallElementBuffer);
+    color[2] = 0.0f;
 
     for (size_t x = 0; x < DEFAULT_MAPSIZE; x++) {
         for (size_t y = 0; y < DEFAULT_MAPSIZE; y++) {
-            if (manager.getMap()[{y, x}].tileType == gltactics::type::WALL) {
-                glm::mat4 mvp = getMVPmat(x, 0, y);
-                glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-                glDrawElements(GL_TRIANGLES, wallIndexCount, GL_UNSIGNED_INT, nullptr);
+            tile &tile = manager.getMap()[{y, x}];
+            if (tile.tileType == gltactics::type::DOOR) {
+                float dY = y;
+                float dX = x;
+                float angle = tile.isHorizontal() ? 0 : doorRotation;
+                if (tile.isOpen()) {
+                    if (tile.isHorizontal())
+                        dX += 0.35f;
+                    else
+                        dY += 0.35f;
+                    angle += doorRotation;
+                }
+                door->addUniformFunction("MVP", [this, dX, dY, angle](GLuint modelUniform, const glMesh &mesh) {
+                    glUniformMatrix4fv(modelUniform, 1, false,
+                                       &(this->getTranslateRotateMVPmat(dX, 0, dY, angle)[0][0]));
+                });
+                door->draw();
             }
         }
     }
@@ -231,53 +143,54 @@ void gltactics::glfw_platform::render() {
     color[0] = 0.0f;
     color[1] = 1.0f;
     color[2] = 0.0f;
-    glUniform3fv(ModelColor, 1, color);
+
 
     const std::array<size_t, 2> &pos = manager.getPlayerCharacter().position();
-    glm::mat4 mvp = getMVPmat(pos[1], 0, pos[0]);
-    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, charVertexBuffer);
-    glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,
-            nullptr
-    );
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, charElementBuffer);
-    glDrawElements(GL_TRIANGLES, charIndexCount, GL_UNSIGNED_INT, nullptr);
+    glm::mat4 mat = glm::translate(glm::mat4(1.0f), glm::vec3(pos[1], 0, pos[0]));
+    glm::mat4 viewMat = getViewMat();
+    player->addUniformFunction("Model", [this, pos](GLuint modelUniform, const glMesh &mesh) {
+        glUniformMatrix4fv(modelUniform, 1, false, &(this->getModelMat(pos[1], 0, pos[0], 0)[0][0]));
+    });
+    player->draw();
 
-    glDisableVertexAttribArray(0);
     glfwSwapBuffers(this->window);
 }
+
+//void gltactics::glfw_platform::drawTriangleArray(GLuint vertexBuffer, size_t vertexCount, float color[]) {
+//    glUseProgram(ConstantColorShader);
+//
+//    glUniform3fv(CCSModelColor, 1, color);
+//    glEnableVertexAttribArray(0);
+//
+//    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+//    glVertexAttribPointer(
+//            0,
+//            3,
+//            GL_FLOAT,
+//            GL_FALSE,
+//            0,
+//            nullptr
+//    );
+//    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+//
+//    glDisableVertexAttribArray(0);
+//}
+//
 
 
 gltactics::input_status gltactics::glfw_platform::get_input() {
     glfwPollEvents();
-    if (glfwGetKey(this->window, GLFW_KEY_Q) == GLFW_PRESS) {
-        camX += 0.5;
-    }
-    if (glfwGetKey(this->window, GLFW_KEY_A) == GLFW_PRESS) {
-        camX -= 0.5;
-    }
-    if (glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS) {
-        camY += 0.5;
-    }
-    if (glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS) {
-        camY -= 0.5;
-    }
-    if (glfwGetKey(this->window, GLFW_KEY_E) == GLFW_PRESS) {
-        camZ += 0.5;
-    }
-    if (glfwGetKey(this->window, GLFW_KEY_D) == GLFW_PRESS) {
-        camZ -= 0.5;
+
+    if (glfwWindowShouldClose(this->window)) {
+        glfwDestroyWindow(this->window);
+        exit(0);
     }
     input_status iStatus = status;
     status = input_status{};
     return iStatus;
 }
+
 
 GLuint gltactics::LoadShaders(const char *vertex_file_path, const char *fragment_file_path) {
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -346,4 +259,15 @@ GLuint gltactics::LoadShaders(const char *vertex_file_path, const char *fragment
     glDeleteShader(FragmentShaderID);
 
     return programID;
+}
+
+
+void gltactics::glMesh::draw() {
+    glUseProgram(_shader.programId);
+
+    for (auto uniformSetup : this->uniformGetters) {
+        uniformSetup.second();
+    }
+    glBindVertexArray(vaoId);
+    glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_INT, nullptr);
 }

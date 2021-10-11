@@ -27,6 +27,7 @@ add_executable(abstract_terror_strike
         ghost.cpp ghost.h platform_module.h
         stdio_platform.cpp stdio_platform.h
         glfw_platform.cpp glfw_platform.h
+        glfwInitialization.cpp glfwInitialization.h
         )
 
 target_link_libraries(abstract_terror_strike fmt glfw GL GLEW assimp)
