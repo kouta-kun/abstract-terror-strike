@@ -20,7 +20,7 @@ gltactics::game_manager::game_manager(std::mt19937_64 &generator) :
                 .position = (Vector3) {0.0f, 15.0f, 0.0f},
                 .target= (Vector3) {0.0f, 0.0f, 0.0f},
                 .up = (Vector3) {0.0f, 0.0f, -1.0f}, .fovy = 90.0f,
-                .type = CAMERA_PERSPECTIVE
+                .projection = CAMERA_PERSPECTIVE
         },
         generator{generator},
         mapGenerator(generator),

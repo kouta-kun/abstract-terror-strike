@@ -5,7 +5,7 @@
 #include <cstdint>
 #include "gen_icons.h"
 
-gltactics::cmpIcon::cmpIcon(const size_t width, const size_t height, std::vector<bool> image) : width(width),
+gltactics::cmpIcon::cmpIcon(const int width, const int height, std::vector<bool> image) : width(width),
                                                                                                   height(height),
                                                                                                   image(std::move(
                                                                                                           image)) {};
@@ -25,9 +25,16 @@ gltactics::cmpIcon gltactics::make_key_icon() {
 }
 
 Image gltactics::iconToImage(const cmpIcon& icon, Color color) {
-    Color image[icon.height * icon.width];
+    Color *image = new Color[icon.height * icon.width * sizeof(color)];
     for(int i = 0; i < icon.height * icon.width; i++) {
         image[i] = icon.image[i] ? color : BLANK;
     }
-    return LoadImageEx(image, icon.width, icon.height);
+    return Image {
+        .data = image,
+        .width = icon.width,
+        .height = icon.height,
+        .mipmaps = 1,
+        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+    };
+//LoadImageEx(image, icon.width, icon.height);
 }

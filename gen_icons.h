@@ -10,11 +10,11 @@
 #ifndef ABSTRACT_TERROR_STRIKE_GEN_ICONS_H
 namespace gltactics {
     struct cmpIcon {
-        size_t width;
-        size_t height;
+        int width;
+        int height;
         std::vector<bool> image;
 
-        cmpIcon(size_t width, size_t height, std::vector<bool> image);
+        cmpIcon(int width, int height, std::vector<bool> image);
         cmpIcon() = default;
     };
 
